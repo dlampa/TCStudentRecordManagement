@@ -70,11 +70,11 @@ namespace TCStudentRecordManagement.Models
 
                 List<Student> sampleStudentData = new List<Student>()
                 {
-                    new Student { CohortID = -1, UserID = 1},
-                    new Student { CohortID = -1, UserID = 2},
-                    new Student { CohortID = -1, UserID = 3},
-                    new Student { CohortID = -2, UserID = 4},
-                    new Student { CohortID = -2, UserID = 5}
+                    new Student { StudentID = -1, CohortID = -1, UserID = 1},
+                    new Student { StudentID = -2, CohortID = -1, UserID = 2},
+                    new Student { StudentID = -3, CohortID = -1, UserID = 3},
+                    new Student { StudentID = -4, CohortID = -2, UserID = 4},
+                    new Student { StudentID = -5, CohortID = -2, UserID = 5}
                 };
 
                 sampleStudentData.ForEach(x => entity.HasData(x));
@@ -86,5 +86,5 @@ namespace TCStudentRecordManagement.Models
 
         }
     }
-    
+
 }
