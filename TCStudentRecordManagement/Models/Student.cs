@@ -27,7 +27,7 @@ namespace TCStudentRecordManagement.Models
         public string BearTracksID { get; set; }
 
         [ForeignKey(nameof(UserID))]
-        public virtual User User { get; set; }
+        public virtual User UserData { get; set; }
 
         [ForeignKey(nameof(CohortID))]
         [InverseProperty(nameof(Cohort.Students))]

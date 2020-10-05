@@ -34,7 +34,7 @@ namespace TCStudentRecordManagement.Models
 
         public Cohort()
         {
-
+            Students = new List<Student>();
         }
 
 

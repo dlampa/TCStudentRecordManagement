@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,6 +54,20 @@ namespace TCStudentRecordManagement.Models
 
             modelBuilder.Entity<Student>(entity =>
             {
+                // Foreign keys in the table
+                entity.HasIndex(x => x.UserID).HasName($"FK_{nameof(Student)}_{nameof(User)}");
+                entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Student)}_{nameof(Cohort)}");
+
+                // Define relationship for UserID and Student
+                //entity.HasOne(student => student.UserData).;
+
+                // Define a relationship between Student and Cohort
+                entity.HasOne(student => student.CohortMember)
+                .WithMany(cohorts => cohorts.Students)
+                .HasForeignKey(student => student.CohortID)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName($"FK_{nameof(Student)}_{nameof(Cohort)}");
+
                 List<Student> sampleStudentData = new List<Student>()
                 {
                     new Student { CohortID = -1, UserID = 1},
