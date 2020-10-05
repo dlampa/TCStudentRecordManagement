@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TCStudentRecordManagement.Models;
 
 namespace TCStudentRecordManagement
 {
@@ -25,6 +27,11 @@ namespace TCStudentRecordManagement
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Add Context with SQL Server connection with parameters from appsettings.json
+            // Ref: https://elanderson.net/2019/11/entity-framework-core-no-database-provider-has-been-configured-for-this-dbcontext/
+            services.AddDbContext<DataContext>(options => options.UseSqlServer(Configuration["sqldb:ConnectionString"]));
+
+
             services.AddControllers();
         }
 

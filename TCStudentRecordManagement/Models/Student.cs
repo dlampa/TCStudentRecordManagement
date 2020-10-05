@@ -33,7 +33,7 @@ namespace TCStudentRecordManagement.Models
         [InverseProperty(nameof(Cohort.Students))]
         public virtual Cohort CohortMember { get; set; }
 
-    
+
 
         public Student()
         {
@@ -41,3 +41,5 @@ namespace TCStudentRecordManagement.Models
         }
 
     }
+}
+
