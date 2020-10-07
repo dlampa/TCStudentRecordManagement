@@ -20,9 +20,15 @@ namespace TCStudentRecordManagement.Models
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Cohort> Cohorts { get; set; }
         public virtual DbSet<Student> Students { get; set; }
+
         public virtual DbSet<Assignment> Assignments { get; set; }
         public virtual DbSet<AssignmentType> AssignmentTypes { get; set; }
         public virtual DbSet<Topic> Topics { get; set; }
+        public virtual DbSet<Timesheet> Timesheets { get; set; }
+
+        public virtual DbSet<Attendance> AttendanceRecords { get; set; }
+        public virtual DbSet<AttendanceState> AttendanceStates { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -221,13 +227,91 @@ namespace TCStudentRecordManagement.Models
                     new Timesheet { RecordID = -8, StudentID = -4, AssignmentID = -7, Date = new DateTime(2020,7,15), TimeAllocation = (decimal)3.25 },
                     new Timesheet { RecordID = -9, StudentID = -4, AssignmentID = -7, Date = new DateTime(2020,7,16), TimeAllocation = (decimal)1.0 }
                 };
-                
+     
+            });
 
+            // AttendanceStateID
 
+            modelBuilder.Entity<AttendanceState>(entity =>
+            {
+                // Sample data
 
+                List<AttendanceState> sampleAttendanceStates = new List<AttendanceState>()
+                {
+                    new AttendanceState { StateID = -1, Description = "Present" },
+                    new AttendanceState { StateID = -2, Description = "Absent with notice" },
+                    new AttendanceState { StateID = -3, Description = "Absent without notice" }
+                };
+
+                sampleAttendanceStates.ForEach(x => entity.HasData(x));
+            });
+
+            // Attendance
+
+            modelBuilder.Entity<Attendance>(entity =>
+            {
+                // Foreign keys
+                entity.HasIndex(x => x.AttendanceStateID).HasName($"FK_{nameof(Attendance)}_{nameof(AttendanceState)}");
+                entity.HasIndex(x => x.StaffID).HasName($"FK_{nameof(Attendance)}_{nameof(User)}");
+                entity.HasIndex(x => x.StudentID).HasName($"FK_{nameof(Attendance)}_{nameof(Student)}");
+
+                // Relationships
+                entity.HasOne(attendance => attendance.AttendanceType)
+                .WithMany(attendancetype => attendancetype.AttendancesOfType)
+                .HasForeignKey(attendance => attendance.AttendanceStateID)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName($"FK_{nameof(Attendance)}_{nameof(AttendanceState)}");
+
+                entity.HasOne(attendance => attendance.StudentDetails)
+                .WithMany(students => students.AttendanceRecord)
+                .HasForeignKey(attendance => attendance.StudentID)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName($"FK_{nameof(Attendance)}_{nameof(Student)}");
+
+                // Sample data
+
+                List<Attendance> sampleAttendanceData = new List<Attendance>()
+                {
+                    new Attendance { RecordID = -1, StudentID = -1, AttendanceStateID = -1, Date = new DateTime(2020,6,25), StaffID = 6 },
+                    new Attendance { RecordID = -2, StudentID = -4, AttendanceStateID = -2, Date = new DateTime(2020,6,25), StaffID = 6 }
+                };
+
+                sampleAttendanceData.ForEach(x => entity.HasData(x));
 
             });
 
+            // Notices
+
+            modelBuilder.Entity<Notice>(entity =>
+            {
+                // Foreign keys
+                entity.HasIndex(x => x.StaffID).HasName($"FK_{nameof(Notice)}_{nameof(User)}");
+                entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Notice)}_{nameof(Cohort)}");
+
+                // Relationships
+                entity.HasOne(notice => notice.ForCohort)
+                .WithMany(cohorts => cohorts.Notices)
+                .HasForeignKey(notice => notice.CohortID)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName($"FK_{nameof(Notice)}_{nameof(Cohort)}");
+
+                entity.HasOne(notice => notice.Staff)
+                .WithMany(user => user.Notices)
+                .HasForeignKey(Notice => Notice.StaffID)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName($"FK_{nameof(Notice)}_{nameof(User)}");
+
+                // Sample data
+
+                List<Notice> sampleNoticeData = new List<Notice>()
+                {
+                    new Notice { NoticeID= -1, CohortID = -1, ValidFrom = new DateTime(2020,6,25), StaffID = 6  },
+                    new Notice { NoticeID= -2, CohortID = -2, ValidFrom = new DateTime(2020,6,25), StaffID = 6  }
+                };
+
+                sampleNoticeData.ForEach(x => entity.HasData(x));
+
+            });
 
         } // End of OnModelCreating
     }

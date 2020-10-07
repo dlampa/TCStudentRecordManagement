@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TCStudentRecordManagement.Models;
 
 namespace TCStudentRecordManagement.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20201007165459_Attendance")]
+    partial class Attendance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -352,61 +354,6 @@ namespace TCStudentRecordManagement.Migrations
                         });
                 });
 
-            modelBuilder.Entity("TCStudentRecordManagement.Models.Notice", b =>
-                {
-                    b.Property<int>("NoticeID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("NoticeID")
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("CohortID")
-                        .HasColumnName("CohortID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("HTML")
-                        .HasColumnName("HTML")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Markdown")
-                        .HasColumnName("Markdown")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StaffID")
-                        .HasColumnName("StaffID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ValidFrom")
-                        .HasColumnName("ValidFrom")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("NoticeID");
-
-                    b.HasIndex("CohortID")
-                        .HasName("FK_Notice_Cohort");
-
-                    b.HasIndex("StaffID")
-                        .HasName("FK_Notice_User");
-
-                    b.ToTable("notices");
-
-                    b.HasData(
-                        new
-                        {
-                            NoticeID = -1,
-                            CohortID = -1,
-                            StaffID = 6,
-                            ValidFrom = new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            NoticeID = -2,
-                            CohortID = -2,
-                            StaffID = 6,
-                            ValidFrom = new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        });
-                });
-
             modelBuilder.Entity("TCStudentRecordManagement.Models.Student", b =>
                 {
                     b.Property<int>("StudentID")
@@ -730,23 +677,6 @@ namespace TCStudentRecordManagement.Migrations
                         .WithMany("AttendanceRecord")
                         .HasForeignKey("StudentID")
                         .HasConstraintName("FK_Attendance_Student")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("TCStudentRecordManagement.Models.Notice", b =>
-                {
-                    b.HasOne("TCStudentRecordManagement.Models.Cohort", "ForCohort")
-                        .WithMany("Notices")
-                        .HasForeignKey("CohortID")
-                        .HasConstraintName("FK_Notice_Cohort")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TCStudentRecordManagement.Models.User", "Staff")
-                        .WithMany("Notices")
-                        .HasForeignKey("StaffID")
-                        .HasConstraintName("FK_Notice_User")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

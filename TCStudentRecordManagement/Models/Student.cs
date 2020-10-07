@@ -32,6 +32,9 @@ namespace TCStudentRecordManagement.Models
         [InverseProperty(nameof(Timesheet.ForStudent))]
         public virtual List<Timesheet> Timesheets { get; set; }
 
+        [InverseProperty(nameof(Attendance.StudentDetails))]
+        public virtual List<Attendance> AttendanceRecord { get; set; }
+
         public Student()
         {
 

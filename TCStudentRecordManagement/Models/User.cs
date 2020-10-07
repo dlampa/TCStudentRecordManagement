@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TCStudentRecordManagement.Models
@@ -29,9 +30,12 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public int Rights { get; set; }
 
+        [InverseProperty(nameof(Notice.Staff))]
+        public virtual List<Notice> Notices { get; set; }
+
         public User()
         {
-
+            Notices = new List<Notice>();
         }
 
 
