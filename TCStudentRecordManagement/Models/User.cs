@@ -33,9 +33,16 @@ namespace TCStudentRecordManagement.Models
         [InverseProperty(nameof(Notice.Staff))]
         public virtual List<Notice> Notices { get; set; }
 
+        [InverseProperty(nameof(Student.UserData))]
+        public virtual Student StudentData { get; set; }
+
+        [InverseProperty(nameof(Attendance.RecordedBy))]
+        public virtual List<Attendance> StaffAttendanceRecords { get; set; }
+
         public User()
         {
             Notices = new List<Notice>();
+            StaffAttendanceRecords = new List<Attendance>();
         }
 
 

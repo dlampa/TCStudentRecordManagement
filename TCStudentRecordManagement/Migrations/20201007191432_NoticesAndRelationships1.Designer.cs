@@ -10,8 +10,8 @@ using TCStudentRecordManagement.Models;
 namespace TCStudentRecordManagement.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20201007181935_Notices")]
-    partial class Notices
+    [Migration("20201007191432_NoticesAndRelationships1")]
+    partial class NoticesAndRelationships1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -435,6 +435,7 @@ namespace TCStudentRecordManagement.Migrations
                         .HasName("FK_Student_Cohort");
 
                     b.HasIndex("UserID")
+                        .IsUnique()
                         .HasName("FK_Student_User");
 
                     b.ToTable("students");
@@ -723,7 +724,7 @@ namespace TCStudentRecordManagement.Migrations
                         .IsRequired();
 
                     b.HasOne("TCStudentRecordManagement.Models.User", "RecordedBy")
-                        .WithMany()
+                        .WithMany("StaffAttendanceRecords")
                         .HasForeignKey("StaffID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -763,8 +764,9 @@ namespace TCStudentRecordManagement.Migrations
                         .IsRequired();
 
                     b.HasOne("TCStudentRecordManagement.Models.User", "UserData")
-                        .WithMany()
-                        .HasForeignKey("UserID")
+                        .WithOne("StudentData")
+                        .HasForeignKey("TCStudentRecordManagement.Models.Student", "UserID")
+                        .HasConstraintName("FK_Student_User")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

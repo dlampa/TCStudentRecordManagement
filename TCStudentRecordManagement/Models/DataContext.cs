@@ -29,6 +29,8 @@ namespace TCStudentRecordManagement.Models
         public virtual DbSet<Attendance> AttendanceRecords { get; set; }
         public virtual DbSet<AttendanceState> AttendanceStates { get; set; }
 
+        public virtual DbSet<Notice> Notices { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -73,7 +75,9 @@ namespace TCStudentRecordManagement.Models
                 entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Student)}_{nameof(Cohort)}");
 
                 // Define relationship for UserID and Student
-                //entity.HasOne(student => student.UserData).;
+                entity.HasOne(student => student.UserData)
+                .WithOne(user => user.StudentData)
+                .HasConstraintName($"FK_{nameof(Student)}_{nameof(User)}");
 
                 // Define a relationship between Student and Cohort
                 entity.HasOne(student => student.CohortMember)

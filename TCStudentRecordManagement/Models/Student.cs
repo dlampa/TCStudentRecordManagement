@@ -23,6 +23,7 @@ namespace TCStudentRecordManagement.Models
         public string BearTracksID { get; set; }
 
         [ForeignKey(nameof(UserID))]
+        [InverseProperty(nameof(User.StudentData))]
         public virtual User UserData { get; set; }
 
         [ForeignKey(nameof(CohortID))]
@@ -37,7 +38,8 @@ namespace TCStudentRecordManagement.Models
 
         public Student()
         {
-
+            Timesheets = new List<Timesheet>();
+            AttendanceRecord = new List<Attendance>();
         }
 
     }

@@ -3,10 +3,18 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TCStudentRecordManagement.Migrations
 {
-    public partial class Notices : Migration
+    public partial class NoticesAndRelationships1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_students_users_UserID",
+                table: "students");
+
+            migrationBuilder.DropIndex(
+                name: "FK_Student_User",
+                table: "students");
+
             migrationBuilder.CreateTable(
                 name: "notices",
                 columns: table => new
@@ -47,6 +55,12 @@ namespace TCStudentRecordManagement.Migrations
                 values: new object[] { -2, -2, null, null, 6, new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified) });
 
             migrationBuilder.CreateIndex(
+                name: "FK_Student_User",
+                table: "students",
+                column: "UserID",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "FK_Notice_Cohort",
                 table: "notices",
                 column: "CohortID");
@@ -55,12 +69,41 @@ namespace TCStudentRecordManagement.Migrations
                 name: "FK_Notice_User",
                 table: "notices",
                 column: "StaffID");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Student_User",
+                table: "students",
+                column: "UserID",
+                principalTable: "users",
+                principalColumn: "UserID",
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Student_User",
+                table: "students");
+
             migrationBuilder.DropTable(
                 name: "notices");
+
+            migrationBuilder.DropIndex(
+                name: "FK_Student_User",
+                table: "students");
+
+            migrationBuilder.CreateIndex(
+                name: "FK_Student_User",
+                table: "students",
+                column: "UserID");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_students_users_UserID",
+                table: "students",
+                column: "UserID",
+                principalTable: "users",
+                principalColumn: "UserID",
+                onDelete: ReferentialAction.Cascade);
         }
     }
 }

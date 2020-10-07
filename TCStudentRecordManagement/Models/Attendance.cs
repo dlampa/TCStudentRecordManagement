@@ -40,8 +40,8 @@ namespace TCStudentRecordManagement.Models
         public virtual Student StudentDetails {get; set;}
 
         [ForeignKey(nameof(StaffID))]
+        [InverseProperty(nameof(User.StaffAttendanceRecords))]
         public virtual User RecordedBy { get; set; }
-
 
         public Attendance()
         {
