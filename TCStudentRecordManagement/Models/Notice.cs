@@ -37,8 +37,8 @@ namespace TCStudentRecordManagement.Models
         public virtual Cohort ForCohort { get; set; }
 
         [ForeignKey(nameof(StaffID))]
-        [InverseProperty(nameof(User.Notices))]
-        public virtual User Staff { get; set; }
+        [InverseProperty(nameof(Staff.Notices))]
+        public virtual Staff ByStaff { get; set; }
 
         public Notice()
         {

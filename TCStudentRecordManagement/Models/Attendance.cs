@@ -31,6 +31,9 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public DateTime Date { get; set; }
 
+        [Column("Comment", TypeName = "nvarchar(max)")]
+        public String Comment { get; set; }
+
         [ForeignKey(nameof(AttendanceStateID))]
         [InverseProperty(nameof(AttendanceState.AttendancesOfType))]
         public virtual AttendanceState AttendanceType { get; set; }
@@ -40,8 +43,8 @@ namespace TCStudentRecordManagement.Models
         public virtual Student StudentDetails {get; set;}
 
         [ForeignKey(nameof(StaffID))]
-        [InverseProperty(nameof(User.StaffAttendanceRecords))]
-        public virtual User RecordedBy { get; set; }
+        [InverseProperty(nameof(Staff.AttendanceTaken))]
+        public virtual Staff RecordedBy { get; set; }
 
         public Attendance()
         {

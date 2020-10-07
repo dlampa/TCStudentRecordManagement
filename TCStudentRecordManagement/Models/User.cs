@@ -26,23 +26,19 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public string Email { get; set; }
 
-        [Column("Rights", TypeName = "tinyint")]
+        [Column("Active", TypeName = "bit")]
         [Required]
-        public int Rights { get; set; }
-
-        [InverseProperty(nameof(Notice.Staff))]
-        public virtual List<Notice> Notices { get; set; }
+        public bool Active { get; set; }
 
         [InverseProperty(nameof(Student.UserData))]
         public virtual Student StudentData { get; set; }
 
-        [InverseProperty(nameof(Attendance.RecordedBy))]
-        public virtual List<Attendance> StaffAttendanceRecords { get; set; }
-
+        [InverseProperty(nameof(Staff.UserData))]
+        public virtual Staff StaffData{ get; set; }
+       
         public User()
         {
-            Notices = new List<Notice>();
-            StaffAttendanceRecords = new List<Attendance>();
+ 
         }
 
 

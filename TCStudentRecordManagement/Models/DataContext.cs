@@ -13,7 +13,12 @@ namespace TCStudentRecordManagement.Models
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
-
+            
+        }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
+          
         }
 
         // DbSets for each table
@@ -21,9 +26,9 @@ namespace TCStudentRecordManagement.Models
         public virtual DbSet<Cohort> Cohorts { get; set; }
         public virtual DbSet<Student> Students { get; set; }
 
-        public virtual DbSet<Assignment> Assignments { get; set; }
-        public virtual DbSet<AssignmentType> AssignmentTypes { get; set; }
-        public virtual DbSet<Topic> Topics { get; set; }
+        public virtual DbSet<Task> Tasks { get; set; }
+        public virtual DbSet<TaskType> TaskTypes { get; set; }
+        public virtual DbSet<Unit> Units { get; set; }
         public virtual DbSet<Timesheet> Timesheets { get; set; }
 
         public virtual DbSet<Attendance> AttendanceRecords { get; set; }
@@ -42,18 +47,40 @@ namespace TCStudentRecordManagement.Models
 
                 // Sample data
                 List<User> sampleUserData = new List<User>() {
-                    new User { UserID = 1, Firstname = "John", Lastname = "Dough", Email = "john.dough@abc.com", Rights = 1},
-                    new User { UserID = 2, Firstname = "Anne", Lastname = "Jackson", Email = "anne.jackson@abc.com", Rights = 1},
-                    new User { UserID = 3, Firstname = "Ivan", Lastname = "Patterson", Email = "ivan.patterson@abc.com", Rights = 1},
-                    new User { UserID = 4,  Firstname = "Trevor", Lastname = "Noah", Email = "trevor.noah@abc.com", Rights = 1},
-                    new User { UserID = 5, Firstname = "Peter", Lastname = "Patsie", Email = "peter.patsie@abc.com", Rights = 1},
-                    new User { UserID = 6, Firstname = "Jane", Lastname = "Smitherson", Email = "jane.smitherson@abc.com", Rights = 2 }
+                    new User { UserID = 1, Firstname = "John", Lastname = "Dough", Email = "john.dough@abc.com"},
+                    new User { UserID = 2, Firstname = "Anne", Lastname = "Jackson", Email = "anne.jackson@abc.com"},
+                    new User { UserID = 3, Firstname = "Ivan", Lastname = "Patterson", Email = "ivan.patterson@abc.com"},
+                    new User { UserID = 4,  Firstname = "Trevor", Lastname = "Noah", Email = "trevor.noah@abc.com"},
+                    new User { UserID = 5, Firstname = "Peter", Lastname = "Patsie", Email = "peter.patsie@abc.com"},
+                    new User { UserID = 6, Firstname = "Jane", Lastname = "Smitherson", Email = "jane.smitherson@abc.com" }
                 };
 
                 sampleUserData.ForEach(x => entity.HasData(x));
 
             });
 
+
+            // Staff
+
+            modelBuilder.Entity<Staff>(entity =>
+            {
+                // Foreign keys
+                entity.HasIndex(x => x.UserID).HasName($"FK_{nameof(Staff)}_{nameof(User)}");
+
+                // Relationships
+                entity.HasOne(staff => staff.UserData)
+                .WithOne(user => user.StaffData)
+                .HasConstraintName($"FK_{nameof(Staff)}_{nameof(User)}");
+
+                List<Staff> sampleStaffMembers = new List<Staff>()
+                {
+                    new Staff {StaffID = -1, UserID = 6, SuperUser = false }
+                };
+
+                sampleStaffMembers.ForEach(x => entity.HasData(x));
+
+
+            });
 
             // Cohorts
 
@@ -74,18 +101,18 @@ namespace TCStudentRecordManagement.Models
                 entity.HasIndex(x => x.UserID).HasName($"FK_{nameof(Student)}_{nameof(User)}");
                 entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Student)}_{nameof(Cohort)}");
 
-                // Define relationship for UserID and Student
+                // Relationships
                 entity.HasOne(student => student.UserData)
                 .WithOne(user => user.StudentData)
                 .HasConstraintName($"FK_{nameof(Student)}_{nameof(User)}");
 
-                // Define a relationship between Student and Cohort
                 entity.HasOne(student => student.CohortMember)
                 .WithMany(cohort => cohort.Students)
                 .HasForeignKey(student => student.CohortID)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName($"FK_{nameof(Student)}_{nameof(Cohort)}");
 
+                // Sample data
                 List<Student> sampleStudentData = new List<Student>()
                 {
                     new Student { StudentID = -1, CohortID = -1, UserID = 1},
@@ -101,45 +128,47 @@ namespace TCStudentRecordManagement.Models
 
             // AssignmentTypes
 
-            modelBuilder.Entity<AssignmentType>(entity =>
+            modelBuilder.Entity<TaskType>(entity =>
             {
-                List<AssignmentType> sampleAssignmentTypes = new List<AssignmentType>()
+                List<TaskType> sampleTaskTypes = new List<TaskType>()
                 {
-                    new AssignmentType { TypeID = -1, Description = "Classroom lectures"},
-                    new AssignmentType { TypeID = -2, Description = "Online self-study"},
-                    new AssignmentType { TypeID = -3, Description = "Break"},
-                    new AssignmentType { TypeID = -4, Description = "Practice" },
-                    new AssignmentType { TypeID = -5, Description = "Weekend assignment" },
-                    new AssignmentType { TypeID = -6, Description = "Milestone" },
-                    new AssignmentType { TypeID = -7, Description = "Capstone" }
+                    new TaskType { TypeID = -1, Description = "Classroom lectures"},
+                    new TaskType { TypeID = -2, Description = "Online self-study"},
+                    new TaskType { TypeID = -3, Description = "Break"},
+                    new TaskType { TypeID = -4, Description = "Practice" },
+                    new TaskType { TypeID = -5, Description = "Weekend assignment" },
+                    new TaskType { TypeID = -6, Description = "Milestone" },
+                    new TaskType { TypeID = -7, Description = "Capstone" }
                 };
 
-                sampleAssignmentTypes.ForEach(x => entity.HasData(x));
+                sampleTaskTypes.ForEach(x => entity.HasData(x));
 
             });
 
             // Topics
 
-            modelBuilder.Entity<Topic>(entity =>
+            modelBuilder.Entity<Unit>(entity =>
             {
-                List<Topic> sampleTopics = new List<Topic>()
+                // Sample data 
+
+                List<Unit> sampleTopics = new List<Unit>()
                 {
-                    new Topic { TopicID = -1, Description = "Generic" },
-                    new Topic { TopicID = -2, Description = "C# fundamentals" },
-                    new Topic { TopicID = -3, Description = "HTML5 and CSS" },
-                    new Topic { TopicID = -4, Description = "Javascript fundamentals" },
-                    new Topic { TopicID = -5, Description = "Javascript AJAX and API" },
-                    new Topic { TopicID = -6, Description = "React fundamentals" },
-                    new Topic { TopicID = -7, Description = "React/Redux" },
-                    new Topic { TopicID = -8, Description = "SQL fundamentals" },
-                    new Topic { TopicID = -9, Description = "Wordpress" },
-                    new Topic { TopicID = -10, Description = "PHP fundamentals" },
-                    new Topic { TopicID = -11, Description = "PHP APIs" },
-                    new Topic { TopicID = -12, Description = "C# OOP" },
-                    new Topic { TopicID = -13, Description = "C# Entity Framework" },
-                    new Topic { TopicID = -14, Description = "C# MVC" },
-                    new Topic { TopicID = -15, Description = "C# WebAPI" },
-                    new Topic { TopicID = -16, Description = "C# WebAPI and React" }
+                    new Unit { UnitID = -1, Description = "Generic" },
+                    new Unit { UnitID = -2, Description = "C# fundamentals" },
+                    new Unit { UnitID = -3, Description = "HTML5 and CSS" },
+                    new Unit { UnitID = -4, Description = "Javascript fundamentals" },
+                    new Unit { UnitID = -5, Description = "Javascript AJAX and API" },
+                    new Unit { UnitID = -6, Description = "React fundamentals" },
+                    new Unit { UnitID = -7, Description = "React/Redux" },
+                    new Unit { UnitID = -8, Description = "SQL fundamentals" },
+                    new Unit { UnitID = -9, Description = "Wordpress" },
+                    new Unit { UnitID = -10, Description = "PHP fundamentals" },
+                    new Unit { UnitID = -11, Description = "PHP APIs" },
+                    new Unit { UnitID = -12, Description = "C# OOP" },
+                    new Unit { UnitID = -13, Description = "C# Entity Framework" },
+                    new Unit { UnitID = -14, Description = "C# MVC" },
+                    new Unit { UnitID = -15, Description = "C# WebAPI" },
+                    new Unit { UnitID = -16, Description = "C# WebAPI and React" }
                 };
 
                 sampleTopics.ForEach(x => entity.HasData(x));
@@ -148,47 +177,47 @@ namespace TCStudentRecordManagement.Models
 
             // Assignments
 
-            modelBuilder.Entity<Assignment>(entity =>
+            modelBuilder.Entity<Task>(entity =>
             {
                 // Foreign keys
-                entity.HasIndex(x => x.TopicID).HasName($"FK_{nameof(Assignment)}_{nameof(Topic)}");
-                entity.HasIndex(x => x.TypeID).HasName($"FK_{nameof(Assignment)}_{nameof(AssignmentType)}");
-                entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Assignment)}_{nameof(Cohort)}");
+                entity.HasIndex(x => x.UnitID).HasName($"FK_{nameof(Task)}_{nameof(Unit)}");
+                entity.HasIndex(x => x.TypeID).HasName($"FK_{nameof(Task)}_{nameof(TaskType)}");
+                entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Task)}_{nameof(Cohort)}");
 
                 // Relationships
-                entity.HasOne(assignment => assignment.AssignmentTopic)
-                .WithMany(topic => topic.Assignments)
-                .HasForeignKey(assignment => assignment.TopicID)
+                entity.HasOne(assignment => assignment.FromUnit)
+                .WithMany(topic => topic.Tasks)
+                .HasForeignKey(assignment => assignment.UnitID)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName($"FK_{nameof(Assignment)}_{nameof(Topic)}");
+                .HasConstraintName($"FK_{nameof(Task)}_{nameof(Unit)}");
 
                 entity.HasOne(assignment => assignment.Type)
-                .WithMany(type => type.Assignments)
+                .WithMany(type => type.Tasks)
                 .HasForeignKey(assignment => assignment.TypeID)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName($"FK_{nameof(Assignment)}_{nameof(AssignmentType)}");
+                .HasConstraintName($"FK_{nameof(Task)}_{nameof(TaskType)}");
 
-                entity.HasOne(assignment => assignment.AssignmentCohort)
-                .WithMany(cohort => cohort.Assignments)
+                entity.HasOne(assignment => assignment.AssignedCohort)
+                .WithMany(cohort => cohort.Tasks)
                 .HasForeignKey(assignment => assignment.CohortID)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName($"FK_{nameof(Assignment)}_{nameof(Cohort)}");
+                .HasConstraintName($"FK_{nameof(Task)}_{nameof(Cohort)}");
 
                 // Sample data
 
-                List<Assignment> sampleAssignments = new List<Assignment>()
+                List<Task> sampleTasks = new List<Task>()
                 {
-                    new Assignment { AssignmentID = -1, CohortID = -9999, TypeID = -1, TopicID = -1, Title = "Classroom instruction", StartDate = DateTime.MinValue, EndDate = DateTime.MaxValue, DocURL = null },
-                    new Assignment { AssignmentID = -2, CohortID = -9999, TypeID = -2, TopicID = -1, Title = "Online self-study", StartDate = DateTime.MinValue, EndDate = DateTime.MaxValue, DocURL = null },
-                    new Assignment { AssignmentID = -3, CohortID = -9999, TypeID = -3, TopicID = -1, Title = "Break", StartDate = DateTime.MinValue, EndDate = DateTime.MaxValue, DocURL = null },
-                    new Assignment { AssignmentID = -4, CohortID = -1, TypeID = -5, TopicID = -2, Title = "Tic-Tac-Toe", StartDate = new DateTime(2020, 6, 25), EndDate = new DateTime(2020, 6, 28), DocURL = "http://does-not-exist.com/" },
-                    new Assignment { AssignmentID = -5, CohortID = -1, TypeID = -4, TopicID = -13, Title = "Entity Framework Practice 2: Cars", StartDate = new DateTime(2020, 9, 21), EndDate = new DateTime(2020, 9, 22), DocURL = "http://does-not-exist.com/" },
-                    new Assignment { AssignmentID = -6, CohortID = -2, TypeID = -6, TopicID = -7, Title = "React/Redux Group Milestone 2", StartDate = new DateTime(2020, 9, 21), EndDate = new DateTime(2020, 9, 22), DocURL = "http://does-not-exist.com/" },
-                    new Assignment { AssignmentID = -7, CohortID = -2, TypeID = -6, TopicID = -15, Title = "Personal Portfolio: Milestone 1", StartDate = new DateTime(2020, 7, 15), EndDate = new DateTime(2020, 7, 22), DocURL = "http://does-not-exist.com/" },
-                    new Assignment { AssignmentID = -8, CohortID = -2, TypeID = -5, TopicID = -4, Title = "Javascript Todo App", StartDate = new DateTime(2020, 7, 21), EndDate = new DateTime(2020, 9, 23), DocURL = "http://does-not-exist.com/" }
+                    new Task { TaskID = -1, CohortID = -9999, TypeID = -1, UnitID = -1, Title = "Classroom instruction", StartDate = DateTime.MinValue, EndDate = DateTime.MaxValue, DocURL = null },
+                    new Task { TaskID = -2, CohortID = -9999, TypeID = -2, UnitID = -1, Title = "Online self-study", StartDate = DateTime.MinValue, EndDate = DateTime.MaxValue, DocURL = null },
+                    new Task { TaskID = -3, CohortID = -9999, TypeID = -3, UnitID = -1, Title = "Break", StartDate = DateTime.MinValue, EndDate = DateTime.MaxValue, DocURL = null },
+                    new Task { TaskID = -4, CohortID = -1, TypeID = -5, UnitID = -2, Title = "Tic-Tac-Toe", StartDate = new DateTime(2020, 6, 25), EndDate = new DateTime(2020, 6, 28), DocURL = "http://does-not-exist.com/" },
+                    new Task { TaskID = -5, CohortID = -1, TypeID = -4, UnitID = -13, Title = "Entity Framework Practice 2: Cars", StartDate = new DateTime(2020, 9, 21), EndDate = new DateTime(2020, 9, 22), DocURL = "http://does-not-exist.com/" },
+                    new Task { TaskID = -6, CohortID = -2, TypeID = -6, UnitID = -7, Title = "React/Redux Group Milestone 2", StartDate = new DateTime(2020, 9, 21), EndDate = new DateTime(2020, 9, 22), DocURL = "http://does-not-exist.com/" },
+                    new Task { TaskID = -7, CohortID = -2, TypeID = -6, UnitID = -15, Title = "Personal Portfolio: Milestone 1", StartDate = new DateTime(2020, 7, 15), EndDate = new DateTime(2020, 7, 22), DocURL = "http://does-not-exist.com/" },
+                    new Task { TaskID = -8, CohortID = -2, TypeID = -5, UnitID = -4, Title = "Javascript Todo App", StartDate = new DateTime(2020, 7, 21), EndDate = new DateTime(2020, 9, 23), DocURL = "http://does-not-exist.com/" }
                 };
 
-                sampleAssignments.ForEach(x => entity.HasData(x));
+                sampleTasks.ForEach(x => entity.HasData(x));
 
             });
 
@@ -199,7 +228,7 @@ namespace TCStudentRecordManagement.Models
             {
                 // Foreign keys
                 entity.HasIndex(x => x.StudentID).HasName($"FK_{nameof(Timesheet)}_{nameof(Student)}");
-                entity.HasIndex(x => x.AssignmentID).HasName($"FK_{nameof(Timesheet)}_{nameof(Assignment)}");
+                entity.HasIndex(x => x.AssignmentID).HasName($"FK_{nameof(Timesheet)}_{nameof(Task)}");
 
                 // Relationships
                 entity.HasOne(timesheet => timesheet.ForStudent)
@@ -212,7 +241,7 @@ namespace TCStudentRecordManagement.Models
                 .WithMany(assignment => assignment.Timesheets)
                 .HasForeignKey(timesheet => timesheet.AssignmentID)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName($"FK_{nameof(Timesheet)}_{nameof(Assignment)}");
+                .HasConstraintName($"FK_{nameof(Timesheet)}_{nameof(Task)}");
 
                 // Will be possible in EF Core 5:
                 // Ref: https://docs.microsoft.com/en-us/ef/core/modeling/entity-properties?tabs=fluent-api%2Cwithout-nrt#precision-and-scale
@@ -256,7 +285,7 @@ namespace TCStudentRecordManagement.Models
             {
                 // Foreign keys
                 entity.HasIndex(x => x.AttendanceStateID).HasName($"FK_{nameof(Attendance)}_{nameof(AttendanceState)}");
-                entity.HasIndex(x => x.StaffID).HasName($"FK_{nameof(Attendance)}_{nameof(User)}");
+                entity.HasIndex(x => x.StaffID).HasName($"FK_{nameof(Attendance)}_{nameof(Staff)}");
                 entity.HasIndex(x => x.StudentID).HasName($"FK_{nameof(Attendance)}_{nameof(Student)}");
 
                 // Relationships
@@ -272,12 +301,18 @@ namespace TCStudentRecordManagement.Models
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName($"FK_{nameof(Attendance)}_{nameof(Student)}");
 
+                entity.HasOne(attendance => attendance.RecordedBy)
+                .WithMany(staff => staff.AttendanceTaken)
+                .HasForeignKey(attendance => attendance.StaffID)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName($"FK_{nameof(Attendance)}_{nameof(Staff)}");
+
                 // Sample data
 
                 List<Attendance> sampleAttendanceData = new List<Attendance>()
                 {
-                    new Attendance { RecordID = -1, StudentID = -1, AttendanceStateID = -1, Date = new DateTime(2020,6,25), StaffID = 6 },
-                    new Attendance { RecordID = -2, StudentID = -4, AttendanceStateID = -2, Date = new DateTime(2020,6,25), StaffID = 6 }
+                    new Attendance { RecordID = -1, StudentID = -1, AttendanceStateID = -1, Date = new DateTime(2020,6,25), StaffID = -1 },
+                    new Attendance { RecordID = -2, StudentID = -4, AttendanceStateID = -2, Date = new DateTime(2020,6,25), StaffID = -1 }
                 };
 
                 sampleAttendanceData.ForEach(x => entity.HasData(x));
@@ -289,7 +324,7 @@ namespace TCStudentRecordManagement.Models
             modelBuilder.Entity<Notice>(entity =>
             {
                 // Foreign keys
-                entity.HasIndex(x => x.StaffID).HasName($"FK_{nameof(Notice)}_{nameof(User)}");
+                entity.HasIndex(x => x.StaffID).HasName($"FK_{nameof(Notice)}_{nameof(Staff)}");
                 entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Notice)}_{nameof(Cohort)}");
 
                 // Relationships
@@ -299,18 +334,18 @@ namespace TCStudentRecordManagement.Models
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName($"FK_{nameof(Notice)}_{nameof(Cohort)}");
 
-                entity.HasOne(notice => notice.Staff)
-                .WithMany(user => user.Notices)
+                entity.HasOne(notice => notice.ByStaff)
+                .WithMany(staff => staff.Notices)
                 .HasForeignKey(Notice => Notice.StaffID)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName($"FK_{nameof(Notice)}_{nameof(User)}");
+                .HasConstraintName($"FK_{nameof(Notice)}_{nameof(Staff)}");
 
                 // Sample data
 
                 List<Notice> sampleNoticeData = new List<Notice>()
                 {
-                    new Notice { NoticeID= -1, CohortID = -1, ValidFrom = new DateTime(2020,6,25), StaffID = 6  },
-                    new Notice { NoticeID= -2, CohortID = -2, ValidFrom = new DateTime(2020,6,25), StaffID = 6  }
+                    new Notice { NoticeID = -1, CohortID = -1, ValidFrom = new DateTime(2020,6,25), StaffID = -1  },
+                    new Notice { NoticeID = -2, CohortID = -2, ValidFrom = new DateTime(2020,6,25), StaffID = -1  }
                 };
 
                 sampleNoticeData.ForEach(x => entity.HasData(x));

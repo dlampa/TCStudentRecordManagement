@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TCStudentRecordManagement.Models
 {
-    [Table("assignment_types")]
-    public class AssignmentType
+    [Table("task_types")]
+    public class TaskType
     {
         [Key]
         [Column("TypeID", TypeName = "int")]
@@ -16,12 +16,12 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public string Description { get; set; }
 
-        [InverseProperty(nameof(Assignment.Type))]
-        public virtual List<Assignment> Assignments { get; set; }
+        [InverseProperty(nameof(Task.Type))]
+        public virtual List<Task> Tasks { get; set; }
 
-        public AssignmentType()
+        public TaskType()
         {
-            Assignments = new List<Assignment>();
+            Tasks = new List<Task>();
         }
 
 

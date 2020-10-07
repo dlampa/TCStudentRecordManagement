@@ -5,17 +5,17 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TCStudentRecordManagement.Models
 {
-    [Table("assignments")]
-    public class Assignment
+    [Table("tasks")]
+    public class Task
     {
         [Key]
-        [Column("AssignmentID", TypeName = "int")]
+        [Column("TaskID", TypeName = "int")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int AssignmentID { get; set; }
+        public int TaskID { get; set; }
 
-        [Column("TopicID", TypeName = "int")]
+        [Column("UnitID", TypeName = "int")]
         [Required]
-        public int TopicID { get; set; }
+        public int UnitID { get; set; }
 
         [Column("TypeID", TypeName = "int")]
         [Required]
@@ -40,22 +40,22 @@ namespace TCStudentRecordManagement.Models
         [Column("DocURL", TypeName = "varchar(255)")]
         public string DocURL { get; set; }
 
-        [ForeignKey(nameof(TopicID))]
-        [InverseProperty(nameof(Topic.Assignments))]
-        public virtual Topic AssignmentTopic { get; set; }
+        [ForeignKey(nameof(UnitID))]
+        [InverseProperty(nameof(Unit.Tasks))]
+        public virtual Unit FromUnit { get; set; }
 
         [ForeignKey(nameof(TypeID))]
-        [InverseProperty(nameof(AssignmentType.Assignments))]
-        public virtual AssignmentType Type { get; set; }
+        [InverseProperty(nameof(TaskType.Tasks))]
+        public virtual TaskType Type { get; set; }
 
         [ForeignKey(nameof(CohortID))]
-        [InverseProperty(nameof(Cohort.Assignments))]
-        public virtual Cohort AssignmentCohort { get; set; }
+        [InverseProperty(nameof(Cohort.Tasks))]
+        public virtual Cohort AssignedCohort { get; set; }
 
         [InverseProperty(nameof(Timesheet.AssignmentAlloc))]
         public virtual List<Timesheet> Timesheets { get; set; }
 
-        public Assignment()
+        public Task()
         {
             Timesheets = new List<Timesheet>();
         }

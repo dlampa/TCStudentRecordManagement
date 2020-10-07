@@ -20,7 +20,7 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public int AssignmentID { get; set; }
 
-        [Column("Date", TypeName = "datetime2")]
+        [Column("Date", TypeName = "date")]
         [Required]
         public DateTime Date { get; set; }
 
@@ -34,8 +34,8 @@ namespace TCStudentRecordManagement.Models
         public virtual Student ForStudent { get; set; }
 
         [ForeignKey(nameof(AssignmentID))]
-        [InverseProperty(nameof(Assignment.Timesheets))]
-        public virtual Assignment AssignmentAlloc { get; set; }
+        [InverseProperty(nameof(Task.Timesheets))]
+        public virtual Task AssignmentAlloc { get; set; }
 
 
         public Timesheet()
