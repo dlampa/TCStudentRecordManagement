@@ -28,6 +28,9 @@ namespace TCStudentRecordManagement.Models
         [InverseProperty(nameof(Student.CohortMember))]
         public virtual List<Student> Students { get; set; }
 
+        [InverseProperty(nameof(Assignment.AssignmentCohort))]
+        public virtual List<Assignment> Assignments { get; set; }
+
         public Cohort()
         {
             Students = new List<Student>();

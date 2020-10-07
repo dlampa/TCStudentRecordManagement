@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TCStudentRecordManagement.Models;
 
 namespace TCStudentRecordManagement.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20201007032834_Assignments")]
+    partial class Assignments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,93 +70,6 @@ namespace TCStudentRecordManagement.Migrations
                         .HasName("FK_Assignment_AssignmentType");
 
                     b.ToTable("assignments");
-
-                    b.HasData(
-                        new
-                        {
-                            AssignmentID = -1,
-                            CohortID = -9999,
-                            EndDate = new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999),
-                            StartDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Classroom instruction",
-                            TopicID = -1,
-                            TypeID = -1
-                        },
-                        new
-                        {
-                            AssignmentID = -2,
-                            CohortID = -9999,
-                            EndDate = new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999),
-                            StartDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Online self-study",
-                            TopicID = -1,
-                            TypeID = -2
-                        },
-                        new
-                        {
-                            AssignmentID = -3,
-                            CohortID = -9999,
-                            EndDate = new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999),
-                            StartDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Break",
-                            TopicID = -1,
-                            TypeID = -3
-                        },
-                        new
-                        {
-                            AssignmentID = -4,
-                            CohortID = -1,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 6, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Tic-Tac-Toe",
-                            TopicID = -2,
-                            TypeID = -5
-                        },
-                        new
-                        {
-                            AssignmentID = -5,
-                            CohortID = -1,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 9, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 9, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Entity Framework Practice 2: Cars",
-                            TopicID = -13,
-                            TypeID = -4
-                        },
-                        new
-                        {
-                            AssignmentID = -6,
-                            CohortID = -2,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 9, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 9, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "React/Redux Group Milestone 2",
-                            TopicID = -7,
-                            TypeID = -6
-                        },
-                        new
-                        {
-                            AssignmentID = -7,
-                            CohortID = -2,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 7, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Personal Portfolio: Milestone 1",
-                            TopicID = -15,
-                            TypeID = -6
-                        },
-                        new
-                        {
-                            AssignmentID = -8,
-                            CohortID = -2,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 9, 23, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 7, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Javascript Todo App",
-                            TopicID = -4,
-                            TypeID = -5
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.AssignmentType", b =>
@@ -178,36 +93,21 @@ namespace TCStudentRecordManagement.Migrations
                         new
                         {
                             TypeID = -1,
-                            Description = "Classroom lectures"
-                        },
-                        new
-                        {
-                            TypeID = -2,
-                            Description = "Online self-study"
-                        },
-                        new
-                        {
-                            TypeID = -3,
-                            Description = "Break"
-                        },
-                        new
-                        {
-                            TypeID = -4,
                             Description = "Practice"
                         },
                         new
                         {
-                            TypeID = -5,
+                            TypeID = -2,
                             Description = "Weekend assignment"
                         },
                         new
                         {
-                            TypeID = -6,
+                            TypeID = -3,
                             Description = "Milestone"
                         },
                         new
                         {
-                            TypeID = -7,
+                            TypeID = -4,
                             Description = "Capstone"
                         });
                 });
@@ -238,13 +138,6 @@ namespace TCStudentRecordManagement.Migrations
                     b.ToTable("cohorts");
 
                     b.HasData(
-                        new
-                        {
-                            CohortID = -9999,
-                            EndDate = new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999),
-                            Name = "Common",
-                            StartDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
                         new
                         {
                             CohortID = -1,
@@ -324,41 +217,6 @@ namespace TCStudentRecordManagement.Migrations
                         });
                 });
 
-            modelBuilder.Entity("TCStudentRecordManagement.Models.Timesheet", b =>
-                {
-                    b.Property<int>("RecordID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("RecordID")
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("AssignmentID")
-                        .HasColumnName("AssignmentID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnName("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("StudentID")
-                        .HasColumnName("StudentID")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TimeAllocation")
-                        .HasColumnName("TimeAllocation")
-                        .HasColumnType("decimal(3,2)");
-
-                    b.HasKey("RecordID");
-
-                    b.HasIndex("AssignmentID")
-                        .HasName("FK_Timesheet_Assignment");
-
-                    b.HasIndex("StudentID")
-                        .HasName("FK_Timesheet_Student");
-
-                    b.ToTable("timesheets");
-                });
-
             modelBuilder.Entity("TCStudentRecordManagement.Models.Topic", b =>
                 {
                     b.Property<int>("TopicID")
@@ -380,81 +238,76 @@ namespace TCStudentRecordManagement.Migrations
                         new
                         {
                             TopicID = -1,
-                            Description = "Generic"
-                        },
-                        new
-                        {
-                            TopicID = -2,
                             Description = "C# fundamentals"
                         },
                         new
                         {
-                            TopicID = -3,
+                            TopicID = -2,
                             Description = "HTML5 and CSS"
                         },
                         new
                         {
-                            TopicID = -4,
+                            TopicID = -3,
                             Description = "Javascript fundamentals"
                         },
                         new
                         {
-                            TopicID = -5,
+                            TopicID = -4,
                             Description = "Javascript AJAX and API"
                         },
                         new
                         {
-                            TopicID = -6,
+                            TopicID = -5,
                             Description = "React fundamentals"
                         },
                         new
                         {
-                            TopicID = -7,
+                            TopicID = -6,
                             Description = "React/Redux"
                         },
                         new
                         {
-                            TopicID = -8,
+                            TopicID = -7,
                             Description = "SQL fundamentals"
                         },
                         new
                         {
-                            TopicID = -9,
+                            TopicID = -8,
                             Description = "Wordpress"
                         },
                         new
                         {
-                            TopicID = -10,
+                            TopicID = -9,
                             Description = "PHP fundamentals"
                         },
                         new
                         {
-                            TopicID = -11,
+                            TopicID = -10,
                             Description = "PHP APIs"
                         },
                         new
                         {
-                            TopicID = -12,
+                            TopicID = -11,
                             Description = "C# OOP"
                         },
                         new
                         {
-                            TopicID = -13,
+                            TopicID = -12,
                             Description = "C# Entity Framework"
                         },
                         new
                         {
-                            TopicID = -14,
+                            TopicID = -13,
                             Description = "C# MVC"
                         },
                         new
                         {
-                            TopicID = -15,
+                            TopicID = -14,
                             Description = "C# WebAPI"
                         },
                         new
                         {
-                            TopicID = -16,
+                            TopicID = -15,
                             Description = "C# WebAPI and React"
                         });
                 });
@@ -547,7 +400,7 @@ namespace TCStudentRecordManagement.Migrations
                         .WithMany("Assignments")
                         .HasForeignKey("CohortID")
                         .HasConstraintName("FK_Assignment_Cohort")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TCStudentRecordManagement.Models.Topic", "AssignmentTopic")
@@ -578,23 +431,6 @@ namespace TCStudentRecordManagement.Migrations
                         .WithMany()
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("TCStudentRecordManagement.Models.Timesheet", b =>
-                {
-                    b.HasOne("TCStudentRecordManagement.Models.Assignment", "AssignmentAlloc")
-                        .WithMany("Timesheets")
-                        .HasForeignKey("AssignmentID")
-                        .HasConstraintName("FK_Timesheet_Assignment")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TCStudentRecordManagement.Models.Student", "ForStudent")
-                        .WithMany("Timesheets")
-                        .HasForeignKey("StudentID")
-                        .HasConstraintName("FK_Timesheet_Student")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

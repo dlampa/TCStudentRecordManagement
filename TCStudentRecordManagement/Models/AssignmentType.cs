@@ -16,7 +16,7 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public string Description { get; set; }
 
-        [InverseProperty(nameof(Assignment.TypeID))]
+        [InverseProperty(nameof(Assignment.Type))]
         public virtual List<Assignment> Assignments { get; set; }
 
         public AssignmentType()

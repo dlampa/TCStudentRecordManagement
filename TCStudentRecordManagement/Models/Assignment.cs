@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -48,11 +49,15 @@ namespace TCStudentRecordManagement.Models
         public virtual AssignmentType Type { get; set; }
 
         [ForeignKey(nameof(CohortID))]
+        [InverseProperty(nameof(Cohort.Assignments))]
         public virtual Cohort AssignmentCohort { get; set; }
+
+        [InverseProperty(nameof(Timesheet.AssignmentAlloc))]
+        public virtual List<Timesheet> Timesheets { get; set; }
 
         public Assignment()
         {
-
+            Timesheets = new List<Timesheet>();
         }
 
 

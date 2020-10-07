@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TCStudentRecordManagement.Models
@@ -27,6 +28,9 @@ namespace TCStudentRecordManagement.Models
         [ForeignKey(nameof(CohortID))]
         [InverseProperty(nameof(Cohort.Students))]
         public virtual Cohort CohortMember { get; set; }
+
+        [InverseProperty(nameof(Timesheet.ForStudent))]
+        public virtual List<Timesheet> Timesheets { get; set; }
 
         public Student()
         {
