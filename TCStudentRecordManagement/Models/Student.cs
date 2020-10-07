@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace TCStudentRecordManagement.Models
 {
@@ -22,7 +18,6 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public int CohortID { get; set; }
 
-
         [Column("BearTracksID", TypeName = "varchar(10)")]
         public string BearTracksID { get; set; }
 
@@ -32,8 +27,6 @@ namespace TCStudentRecordManagement.Models
         [ForeignKey(nameof(CohortID))]
         [InverseProperty(nameof(Cohort.Students))]
         public virtual Cohort CohortMember { get; set; }
-
-
 
         public Student()
         {
