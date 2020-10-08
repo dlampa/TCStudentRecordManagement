@@ -260,6 +260,8 @@ namespace TCStudentRecordManagement.Models
                     new Timesheet { RecordID = -8, StudentID = -4, AssignmentID = -7, Date = new DateTime(2020,7,15), TimeAllocation = (decimal)3.25 },
                     new Timesheet { RecordID = -9, StudentID = -4, AssignmentID = -7, Date = new DateTime(2020,7,16), TimeAllocation = (decimal)1.0 }
                 };
+
+                sampleTimesheets.ForEach(x => entity.HasData(x));
      
             });
 

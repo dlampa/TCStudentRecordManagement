@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TCStudentRecordManagement.Models
 {
-    [Table("topics")]
+    [Table("units")]
     public class Unit
     {
         [Key]
