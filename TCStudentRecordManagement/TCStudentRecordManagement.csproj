@@ -8,6 +8,7 @@
     <Product>TECHCareers Student Record Management System</Product>
     <Copyright>Damir Lampa</Copyright>
     <PackageLicenseExpression>GPLv3</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>

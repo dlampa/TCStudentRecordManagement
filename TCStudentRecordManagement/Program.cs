@@ -11,6 +11,8 @@ using Serilog.Sinks.SystemConsole.Themes;
 using System.Linq;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using CommandLine.Text;
+using System.Reflection;
 
 namespace TCStudentRecordManagement
 {
@@ -58,7 +60,7 @@ namespace TCStudentRecordManagement
             }
 
             // Log destination.
-            // TODO reverse to default with console log being an option
+            // TODO reverse to default with console log being an option in the final version
             if (options.LogFile != null)
             {
                 LogConfig.WriteTo.File(options.LogFile.FullName);
@@ -71,13 +73,23 @@ namespace TCStudentRecordManagement
             // Check if Super Admin is to be added to the DB
             if (options.CreateAdmin != string.Empty)
             {
+                // Initialize the logger for the Super Admin addition 'session'
+                Log.Logger = LogConfig.CreateLogger();
                 CreateSuperAdmin(options.CreateAdmin);
             }
 
-            Logo.printLogo();
-            Console.WriteLine("TECHCareers Student Record Management API");
+            // TODO See above - reverse for file logging being default
+            // if (options.Console)
 
-            // Initialize the logger
+            // Show TECHCareers logo
+            Logo.printLogo();
+            Console.WriteLine("TECHCareers Student Record Management API\n");
+
+            // Copyright from assembly info
+            // Ref: https://stackoverflow.com/a/19384288/12802214
+            // Console.WriteLine("(C) " + ((AssemblyCopyrightAttribute)typeof(Program).Assembly.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), true)[0]).Copyright);
+
+            // Initialize the logger for normal operation
             Log.Logger = LogConfig.CreateLogger();
 
             try
@@ -130,24 +142,26 @@ namespace TCStudentRecordManagement
                 dbConn.Open();
                 SqlCommand sqlCmd = dbConn.CreateCommand();
 
-                sqlCmd.CommandText = $"SELECT [StaffID], [staff.UserID], [SuperUser], [Email], [Active] from staff LEFT JOIN users on staff.UserID = users.UserID where users.Email = '{paramEmail}'";
+                sqlCmd.CommandText = $"SELECT [StaffID], staff.[UserID], [SuperUser], [Email], [Active] from staff LEFT JOIN users on staff.UserID = users.UserID where users.Email = '{paramEmail}'";
                 // Based on query above, column indices are StaffID = 0, UserID = 1, SuperUser = 2, Email = 3, Active = 4
 
                 // Check if user exists
                 SqlDataReader response = sqlCmd.ExecuteReader();
                 if (response.HasRows)
                 {
+                    response.Read();
                     // Get the StaffID and UserID from the record
-                    int StaffID = response.GetInt16(0);
+                    int StaffID = response.GetInt32(0);
 
                     // Check if the user has Super Admin rights
-                    if (response.GetInt16(2) == 1)
+                    if (response.GetBoolean(2))
                     {
                         Logger.Msg<Program>($"Super Admin rights already assigned to user '{paramEmail}'", LogEventLevel.Error);
                         Environment.Exit(1);
                     }
                     else
                     {
+                        response.Close();
                         // User is not a Super Admin, so change the record appropriately
                         sqlCmd.CommandText = $"UPDATE staff SET [SuperUser] = 1 WHERE [StaffID] = {StaffID};";
 
@@ -155,41 +169,49 @@ namespace TCStudentRecordManagement
                         {
                             sqlCmd.ExecuteNonQuery();
                             Logger.Msg<Program>($"Super Admin rights granted to user '{paramEmail}'", LogEventLevel.Information);
+                            Log.CloseAndFlush();
                             Environment.Exit(0);
                         }
                         catch (Exception ex)
                         {
                             Logger.Msg<Program>($"Super Admin rights could not be granted to user '{paramEmail}'", LogEventLevel.Error);
                             Logger.Msg<Program>(ex);
+                            Log.CloseAndFlush();
                             Environment.Exit(1);
                         }
+
 
                     }
                 }
                 else
                 {
-                    // User does not exist in the database, need to create a new user first
-
-                    Console.WriteLine($"User '{paramEmail}' does not exist in the database. A new user will be created.");
-                    Console.Write("Enter new user's first name: ");
-                    string firstName = Console.ReadLine().Trim();
-                    Console.Write("Enter new user's last name: ");
-                    string lastName = Console.ReadLine().Trim();
-
-                    // Add user to the 'users' and 'staff' tables
-                    sqlCmd.CommandText = $"INSERT INTO users ([Firstname], [Lastname], [Email], [Active]) VALUES (N'{firstName}', N'{lastName}', '{paramEmail}', 1);" +
-                        $"INSERT INTO staff ([UserID], [SuperUser]) SELECT [UserID], 1 FROM users WHERE [email] = {paramEmail};";
-
                     try
                     {
-                        sqlCmd.ExecuteNonQuery();
+                        // User does not exist in the database, need to create a new user first
+
+                        Console.WriteLine($"User '{paramEmail}' does not exist in the database. A new user will be created.");
+                        Console.Write("Enter new user's first name: ");
+                        string firstName = Console.ReadLine().Trim();
+                        Console.Write("Enter new user's last name: ");
+                        string lastName = Console.ReadLine().Trim();
+
+                        // Add user to the 'users' and 'staff' tables
+                        sqlCmd.CommandText = $"INSERT INTO users ([Firstname], [Lastname], [Email], [Active]) VALUES (N'{firstName}', N'{lastName}', '{paramEmail}', 1);" +
+                            $"INSERT INTO staff ([UserID], [SuperUser]) SELECT [UserID], 1 FROM users WHERE [email] = '{paramEmail}';";
+
+                        Console.WriteLine(sqlCmd.CommandText);
+
+
+                        int rowsAffected = sqlCmd.ExecuteNonQuery();
                         Logger.Msg<Program>($"Super Admin rights granted to user '{paramEmail}'", LogEventLevel.Information);
+                        Log.CloseAndFlush();
                         Environment.Exit(0);
                     }
                     catch (Exception ex)
                     {
                         Logger.Msg<Program>($"An error occured during SQL operation.", LogEventLevel.Error);
                         Logger.Msg<Program>(ex);
+                        Log.CloseAndFlush();
                         Environment.Exit(1);
                     }
 
@@ -220,7 +242,7 @@ namespace TCStudentRecordManagement
         [Option("httpport", Default = 5000, Required = false, HelpText = "Listen on the specified port. Specify 0 to disable")]
         public int HTTPPort { get; set; }
 
-        [Option("createadmin", Default = "", Required = false, HelpText = "Create a new or add existing user as a Super Admin")]
+        [Option("createadmin", Required = false, HelpText = "Create a new or add existing user as a Super Admin")]
         public string CreateAdmin { get; set; }
 
     }

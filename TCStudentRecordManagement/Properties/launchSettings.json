@@ -19,6 +19,7 @@
     },
     "TCStudentRecordManagement": {
       "commandName": "Project",
+      "commandLineArgs": "--createadmin lampa@altx.dev",
       "launchUrl": "weatherforecast",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
