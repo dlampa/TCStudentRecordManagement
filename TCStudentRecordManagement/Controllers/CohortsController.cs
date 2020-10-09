@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Models;
+using TCStudentRecordManagement.Utils;
+
 
 namespace TCStudentRecordManagement.Controllers
 {
@@ -25,6 +27,21 @@ namespace TCStudentRecordManagement.Controllers
         public async Task<ActionResult<IEnumerable<Cohort>>> All()
         {
             return await _context.Cohorts.ToListAsync();
+        }
+
+        // Using PUT for addition methods as PUT implies that resource will only be added once.
+        // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
+        [HttpPut]
+        [Route("/cohorts/add")]
+        public ActionResult AddCohort_Target(string name, string startDate, string endDate)
+        {
+            // Check if there is an authorization
+
+            // Call BLL Cohort Add method with all the parameters
+
+            // Catch errors and return exceptions as appropriate
+            Logger.Msg<CohortsController>("ADD cohort", Serilog.Events.LogEventLevel.Information);
+            return Ok();
         }
 
         // GET: api/Cohorts/5
