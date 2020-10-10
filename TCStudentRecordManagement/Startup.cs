@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TCStudentRecordManagement.Auth;
+using TCStudentRecordManagement.Auth.Authorization;
 using TCStudentRecordManagement.Models;
 
 namespace TCStudentRecordManagement
@@ -59,6 +60,12 @@ namespace TCStudentRecordManagement
                 };
             });
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("StaffMember", policy => policy.Requirements.Add(new StaffAuthCheck()));
+                //options.AddPolicy("SuperAdmin", policy => policy.Requirements.Add(new SuperAdminCheck()));
+            });
+
 
             services.AddControllers();
         }
@@ -78,6 +85,7 @@ namespace TCStudentRecordManagement
             app.UseAuthentication();
 
             app.UseAuthorization();
+
 
             app.UseEndpoints(endpoints =>
             {

@@ -78,6 +78,7 @@ namespace TCStudentRecordManagement.Auth
                     {
                         bool userIsStaff = userData.StaffData != null;
                         bool userIsSuperUser = userIsStaff ? userData.StaffData.SuperUser : false;
+                        claims.Add(new Claim(ClaimTypes.Role, (userIsSuperUser ? "SuperAdmin" : userIsStaff ? "Staff" : "Student")));
                         Logger.Msg<GoogleTokenValidator>($"[LOGIN] SUCCESS User {payload.Email} {(userIsSuperUser ? "(Super)" : userIsStaff ? "(Staff)" : string.Empty)}");
                     }
                     else
