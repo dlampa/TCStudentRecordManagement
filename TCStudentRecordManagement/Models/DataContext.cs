@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace TCStudentRecordManagement.Models
 {
-    public class DataContext : DbContext
+    public class DataContext: DbContext
     {
         public DataContext()
         {
@@ -13,10 +14,15 @@ namespace TCStudentRecordManagement.Models
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
-            
+        
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer(APIConfig.Configuration["sqldb:ConnectionString"]);
+            }
+            
             optionsBuilder.EnableSensitiveDataLogging();
           
         }

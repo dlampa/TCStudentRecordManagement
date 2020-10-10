@@ -74,8 +74,8 @@ namespace TCStudentRecordManagement
             if (options.CreateAdmin != string.Empty)
             {
                 // Initialize the logger for the Super Admin addition 'session'
-                Log.Logger = LogConfig.CreateLogger();
-                CreateSuperAdmin(options.CreateAdmin);
+                //Log.Logger = LogConfig.CreateLogger();
+                //CreateSuperAdmin(options.CreateAdmin);
             }
 
             // TODO See above - reverse for file logging being default
@@ -108,7 +108,7 @@ namespace TCStudentRecordManagement
             {
                 Log.CloseAndFlush();
             }
-
+            
         }
 
 
