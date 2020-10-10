@@ -29,6 +29,7 @@ namespace TCStudentRecordManagement.Models
 
         // DbSets for each table
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Staff> Staff { get; set; }
         public virtual DbSet<Cohort> Cohorts { get; set; }
         public virtual DbSet<Student> Students { get; set; }
 

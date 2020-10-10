@@ -8,6 +8,7 @@ using TCStudentRecordManagement.Utils;
 using TCStudentRecordManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Diagnostics.Eventing.Reader;
 
 namespace TCStudentRecordManagement.Auth
 {
@@ -36,44 +37,65 @@ namespace TCStudentRecordManagement.Auth
         {
             validatedToken = null;
 
-            // GoogleJsonWebSignature class contains methods to validate the Google issued JWT
-            // ValidationSettings() method contains definitions for default auth settings (clock deviation tolerances, hosted domain validation for GSuite
-            // and Client ID verification. Nothing is overriden, so all settings are at default for now.
-            GoogleJsonWebSignature.ValidationSettings validationSettings = new GoogleJsonWebSignature.ValidationSettings();
+            // Create a new list of claims that is to contain Google JWT payload data that will become part of the Identity
+            List<Claim> claims = null;
 
-            // ValidateAsync() performs the validation of the JWT token. Token payload contains the targeted data as defined during the Auth Token definition
-            // (scope of access to various Google services/APIs/personal information, etc. The payload data will be stored into a list of claims.
-            GoogleJsonWebSignature.Payload payload = GoogleJsonWebSignature.ValidateAsync(securityToken, validationSettings).Result;
+            // Create a new payload object
+            GoogleJsonWebSignature.Payload payload = null;
 
-            // Create a list of claims containing Google JWT payload data
-            /*new Claim(JwtRegisteredClaimNames.Website, payload.Picture),*/
-            List<Claim> claims = new List<Claim>
+            // Validate token
+            try
             {
-                new Claim(ClaimTypes.NameIdentifier, payload.Name),
-                new Claim(ClaimTypes.Name, payload.Name),
-                new Claim(JwtRegisteredClaimNames.FamilyName, payload.FamilyName),
-                new Claim(JwtRegisteredClaimNames.GivenName, payload.GivenName),
-                new Claim(JwtRegisteredClaimNames.Email, payload.Email),
-                new Claim(JwtRegisteredClaimNames.Sub, payload.Subject),
-                new Claim(JwtRegisteredClaimNames.Iss, payload.Issuer),
-            };
+                // GoogleJsonWebSignature class contains methods to validate the Google issued JWT
+                // ValidationSettings() method contains definitions for default auth settings (clock deviation tolerances, hosted domain validation for GSuite
+                // and Client ID verification. Nothing is overriden, so all settings are at default for now.
+                GoogleJsonWebSignature.ValidationSettings validationSettings = new GoogleJsonWebSignature.ValidationSettings();
 
-            // Check if the user exists in the local database.
-            using (DataContext _DataContext = new DataContext())
+                // ValidateAsync() performs the validation of the JWT token. Token payload contains the targeted data as defined during the Auth Token definition
+                // (scope of access to various Google services/APIs/personal information, etc. The payload data will be stored into a list of claims.
+                payload = GoogleJsonWebSignature.ValidateAsync(securityToken, validationSettings).Result;
+
+                // Create a list of claims containing Google JWT payload data
+                claims = new List<Claim>()
+                {
+                    new Claim(ClaimTypes.NameIdentifier, payload.Name),
+                    new Claim(ClaimTypes.Name, payload.Name),
+                    new Claim(JwtRegisteredClaimNames.FamilyName, payload.FamilyName),
+                    new Claim(JwtRegisteredClaimNames.GivenName, payload.GivenName),
+                    new Claim(JwtRegisteredClaimNames.Website, payload.Picture),
+                    new Claim(JwtRegisteredClaimNames.Email, payload.Email),
+                    new Claim(JwtRegisteredClaimNames.Sub, payload.Subject),
+                    new Claim(JwtRegisteredClaimNames.Iss, payload.Issuer),
+                };
+
+                // Check if the user exists in the local database.
+                using (DataContext _DataContext = new DataContext())
+                {
+                    // Get DB record associated with the Email, if it exists.
+                    User userData = _DataContext.Users.Where(x => x.Email == payload.Email).FirstOrDefault();
+
+                    if (userData != null)
+                    {
+                        bool userIsStaff = userData.StaffData != null;
+                        bool userIsSuperUser = userIsStaff ? userData.StaffData.SuperUser : false;
+                        Logger.Msg<GoogleTokenValidator>($"[LOGIN] SUCCESS User {payload.Email} {(userIsSuperUser ? "(Super)" : userIsStaff ? "(Staff)" : string.Empty)}");
+                    }
+                    else
+                    {
+                        throw new SecurityTokenValidationException($"[LOGIN] FAIL User with auth token belonging to {payload.Email} not found in database");
+                    }
+                }
+            }
+            catch (Exception ex)
             {
-                bool userInDB = _DataContext.Users.Where(x => x.Email == payload.Email).Count() == 1;
-                if (userInDB)
-                {
-                    Logger.Msg<GoogleTokenValidator>($"[LOGIN] SUCCESS User {payload.Email}");
-                }
-                else
-                {
-                    Logger.Msg<GoogleTokenValidator>($"[LOGIN] FAIL User with auth token belonging to {payload.Email} not found in database");
-                    return null;
-                }
+                // TODO fix: 
+                // 1. Check for the type of exception and adapt message accordingly
+                Logger.Msg<GoogleTokenValidator>(new SecurityTokenValidationException($"[LOGIN] FAIL {ex.Message}"));
+                throw;
             }
 
 
+            // Convert token to Identity
             try
             {
                 ClaimsPrincipal principal = new ClaimsPrincipal();
@@ -83,8 +105,9 @@ namespace TCStudentRecordManagement.Auth
             catch (Exception ex)
             {
                 Logger.Msg(ex);
-                return null;
+                throw new SecurityTokenValidationException($"[LOGIN] FAIL Unable to authenticate user with auth token belonging to {payload.Email}");
             }
+
         }
     }
 
