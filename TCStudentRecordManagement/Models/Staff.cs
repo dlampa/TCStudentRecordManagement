@@ -24,6 +24,7 @@ namespace TCStudentRecordManagement.Models
         [InverseProperty(nameof(Notice.ByStaff))]
         public virtual List<Notice> Notices { get; set; }
 
+        [ForeignKey(nameof(UserID))]
         [InverseProperty(nameof(User.StaffData))]
         public virtual User UserData { get; set; }
 

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace TCStudentRecordManagement.Models
 {
-    public class DataContext : DbContext
+    public class DataContext: DbContext
     {
         public DataContext()
         {
@@ -13,16 +14,22 @@ namespace TCStudentRecordManagement.Models
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
-            
+        
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer(APIConfig.Configuration["sqldb:ConnectionString"]);
+            }
+            
             optionsBuilder.EnableSensitiveDataLogging();
           
         }
 
         // DbSets for each table
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Staff> Staff { get; set; }
         public virtual DbSet<Cohort> Cohorts { get; set; }
         public virtual DbSet<Student> Students { get; set; }
 

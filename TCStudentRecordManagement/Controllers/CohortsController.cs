@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,15 +34,23 @@ namespace TCStudentRecordManagement.Controllers
         // Using PUT for addition methods as PUT implies that resource will only be added once.
         // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
         [HttpPut]
+        //[Authorize]
+        [Authorize(Policy = "StaffMember")]
         [Route("/cohorts/add")]
         public ActionResult AddCohort_Target(string name, string startDate, string endDate)
         {
+            // This will by default check if there is Authorization to execute. If there isn't an authorization, then API server automatically
+            // returns 401 response.
+
+         
             // Check if there is an authorization
 
             // Call BLL Cohort Add method with all the parameters
 
             // Catch errors and return exceptions as appropriate
-            Logger.Msg<CohortsController>("ADD cohort", Serilog.Events.LogEventLevel.Information);
+            Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ADD] {name}", Serilog.Events.LogEventLevel.Information);
+
+            
             return Ok();
         }
 
