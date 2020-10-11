@@ -7,6 +7,9 @@ namespace TCStudentRecordManagement.Models
 {
     public class DataContext: DbContext
     {
+        // This trigger will be used to import sample data during migration
+        private bool sampleData = false;
+
         public DataContext()
         {
 
@@ -62,7 +65,7 @@ namespace TCStudentRecordManagement.Models
                     new User { UserID = 6, Firstname = "Jane", Lastname = "Smitherson", Email = "jane.smitherson@abc.com" }
                 };
 
-                sampleUserData.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleUserData.ForEach(x => entity.HasData(x));
 
             });
 
@@ -84,7 +87,7 @@ namespace TCStudentRecordManagement.Models
                     new Staff {StaffID = -1, UserID = 6, SuperUser = false }
                 };
 
-                sampleStaffMembers.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleStaffMembers.ForEach(x => entity.HasData(x));
 
 
             });
@@ -93,11 +96,13 @@ namespace TCStudentRecordManagement.Models
 
             modelBuilder.Entity<Cohort>(entity =>
             {
-
-                // Sample data
-                entity.HasData(new Cohort { CohortID = -9999, Name = "Common", StartDate = DateTime.MinValue, EndDate = DateTime.MaxValue });
-                entity.HasData(new Cohort { CohortID = -1, Name = "4.1 Summer/Autumn 2020", StartDate = new DateTime(2020, 6, 15), EndDate = new DateTime(2020, 10, 30) });
-                entity.HasData(new Cohort { CohortID = -2, Name = "4.2 Autumn/Winter 2020", StartDate = new DateTime(2020, 8, 15), EndDate = new DateTime(2020, 12, 31) });
+                if (sampleData)
+                {
+                    // Sample data
+                    entity.HasData(new Cohort { CohortID = -9999, Name = "Common", StartDate = DateTime.MinValue, EndDate = DateTime.MaxValue });
+                    entity.HasData(new Cohort { CohortID = -1, Name = "4.1 Summer/Autumn 2020", StartDate = new DateTime(2020, 6, 15), EndDate = new DateTime(2020, 10, 30) });
+                    entity.HasData(new Cohort { CohortID = -2, Name = "4.2 Autumn/Winter 2020", StartDate = new DateTime(2020, 8, 15), EndDate = new DateTime(2020, 12, 31) });
+                }
             });
 
             // Students
@@ -116,7 +121,7 @@ namespace TCStudentRecordManagement.Models
                 entity.HasOne(student => student.CohortMember)
                 .WithMany(cohort => cohort.Students)
                 .HasForeignKey(student => student.CohortID)
-                .OnDelete(DeleteBehavior.Restrict)
+                .OnDelete(DeleteBehavior.Cascade) // CHANGE TO RESTRICT
                 .HasConstraintName($"FK_{nameof(Student)}_{nameof(Cohort)}");
 
                 // Sample data
@@ -129,11 +134,11 @@ namespace TCStudentRecordManagement.Models
                     new Student { StudentID = -5, CohortID = -2, UserID = 5}
                 };
 
-                sampleStudentData.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleStudentData.ForEach(x => entity.HasData(x));
 
             });
 
-            // AssignmentTypes
+            // TaskType
 
             modelBuilder.Entity<TaskType>(entity =>
             {
@@ -148,11 +153,11 @@ namespace TCStudentRecordManagement.Models
                     new TaskType { TypeID = -7, Description = "Capstone" }
                 };
 
-                sampleTaskTypes.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleTaskTypes.ForEach(x => entity.HasData(x));
 
             });
 
-            // Topics
+            // Units
 
             modelBuilder.Entity<Unit>(entity =>
             {
@@ -178,11 +183,11 @@ namespace TCStudentRecordManagement.Models
                     new Unit { UnitID = -16, Description = "C# WebAPI and React" }
                 };
 
-                sampleTopics.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleTopics.ForEach(x => entity.HasData(x));
 
             });
 
-            // Assignments
+            // Tasks
 
             modelBuilder.Entity<Task>(entity =>
             {
@@ -193,7 +198,7 @@ namespace TCStudentRecordManagement.Models
 
                 // Relationships
                 entity.HasOne(assignment => assignment.FromUnit)
-                .WithMany(topic => topic.Tasks)
+                .WithMany(unit => unit.Tasks)
                 .HasForeignKey(assignment => assignment.UnitID)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName($"FK_{nameof(Task)}_{nameof(Unit)}");
@@ -224,7 +229,7 @@ namespace TCStudentRecordManagement.Models
                     new Task { TaskID = -8, CohortID = -2, TypeID = -5, UnitID = -4, Title = "Javascript Todo App", StartDate = new DateTime(2020, 7, 21), EndDate = new DateTime(2020, 9, 23), DocURL = "http://does-not-exist.com/" }
                 };
 
-                sampleTasks.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleTasks.ForEach(x => entity.HasData(x));
 
             });
 
@@ -268,7 +273,7 @@ namespace TCStudentRecordManagement.Models
                     new Timesheet { RecordID = -9, StudentID = -4, AssignmentID = -7, Date = new DateTime(2020,7,16), TimeAllocation = (decimal)1.0 }
                 };
 
-                sampleTimesheets.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleTimesheets.ForEach(x => entity.HasData(x));
      
             });
 
@@ -285,7 +290,7 @@ namespace TCStudentRecordManagement.Models
                     new AttendanceState { StateID = -3, Description = "Absent without notice" }
                 };
 
-                sampleAttendanceStates.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleAttendanceStates.ForEach(x => entity.HasData(x));
             });
 
             // Attendance
@@ -307,7 +312,7 @@ namespace TCStudentRecordManagement.Models
                 entity.HasOne(attendance => attendance.StudentDetails)
                 .WithMany(students => students.AttendanceRecord)
                 .HasForeignKey(attendance => attendance.StudentID)
-                .OnDelete(DeleteBehavior.Restrict)
+                .OnDelete(DeleteBehavior.Cascade) // CHANGE TO RESTRICT
                 .HasConstraintName($"FK_{nameof(Attendance)}_{nameof(Student)}");
 
                 entity.HasOne(attendance => attendance.RecordedBy)
@@ -324,7 +329,7 @@ namespace TCStudentRecordManagement.Models
                     new Attendance { RecordID = -2, StudentID = -4, AttendanceStateID = -2, Date = new DateTime(2020,6,25), StaffID = -1 }
                 };
 
-                sampleAttendanceData.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleAttendanceData.ForEach(x => entity.HasData(x));
 
             });
 
@@ -357,7 +362,7 @@ namespace TCStudentRecordManagement.Models
                     new Notice { NoticeID = -2, CohortID = -2, ValidFrom = new DateTime(2020,6,25), StaffID = -1  }
                 };
 
-                sampleNoticeData.ForEach(x => entity.HasData(x));
+                if (sampleData) sampleNoticeData.ForEach(x => entity.HasData(x));
 
             });
 
