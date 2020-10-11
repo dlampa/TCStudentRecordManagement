@@ -2,30 +2,30 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using TCStudentRecordManagement.Utils;
-using TCStudentRecordManagement.Models;
+
 
 namespace TCStudentRecordManagement.Auth.Authorization
 {
-    public class StaffAuthCheck : IAuthorizationRequirement
+    public class SuperAuthCheck : IAuthorizationRequirement
     {
-        public StaffAuthCheck()
+        public SuperAuthCheck()
         {
 
         }
     }
 
-    public class StaffAuthCheckHandler : AuthorizationHandler<StaffAuthCheck>
+    public class SuperAuthCheckHandler : AuthorizationHandler<SuperAuthCheck>
     {
         // Will need this to pass HTTP Request information to the AuthorizationHandler
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public StaffAuthCheckHandler(IHttpContextAccessor httpContextAccessor)
+        public SuperAuthCheckHandler(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
         // Use HandleRequirementAsync to decide if the authorization is granted or not
-        protected async override System.Threading.Tasks.Task HandleRequirementAsync(AuthorizationHandlerContext context, StaffAuthCheck requirement)
+        protected async override System.Threading.Tasks.Task HandleRequirementAsync(AuthorizationHandlerContext context, SuperAuthCheck requirement)
         {
             // Note: the method will run synchronously because there is nothing async in it's operation
 
@@ -36,8 +36,8 @@ namespace TCStudentRecordManagement.Auth.Authorization
                 return;
             }
 
-            // Check if the user is a Staff group member or a Super Admin (Super Admin supercedes Staff rights, so it's acceptable)
-            if (context.User.Claims.Where(x => x.Type == "Role" && (x.Value == "Staff" | x.Value == "Super")).Count() == 1)
+            // Check if the user is a a Super Admin
+            if (context.User.Claims.Where(x => x.Type == "Role").Select(x => x.Value == "Super").First())
             {
                 // Return success
                 context.Succeed(requirement);
@@ -46,7 +46,7 @@ namespace TCStudentRecordManagement.Auth.Authorization
             else
             {
                 // Return fail
-                Logger.Msg<GoogleTokenValidator>($"[LOGIN] FAILURE User {context.User.FindFirst("email").Value} unsuccessful authorization for [Staff]");
+                Logger.Msg<GoogleTokenValidator>($"[LOGIN] FAILURE User {context.User.FindFirst("email").Value} unsuccessful authorization for [SuperAdmin]");
                 context.Fail();
                 return;
             }

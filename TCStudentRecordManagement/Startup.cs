@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -37,8 +40,6 @@ namespace TCStudentRecordManagement
             // Ref: https://elanderson.net/2019/11/entity-framework-core-no-database-provider-has-been-configured-for-this-dbcontext/
             services.AddDbContext<DataContext>(options => options.UseSqlServer(Configuration["sqldb:ConnectionString"]));
 
-            
-
             // Add authentication service using JWT token validation
             services.AddAuthentication(options =>
             {
@@ -51,21 +52,32 @@ namespace TCStudentRecordManagement
                 options.SecurityTokenValidators.Add(new GoogleTokenValidator());
                 options.Events = new JwtBearerEvents()
                 {
-                    OnChallenge = context =>
+
+                    OnAuthenticationFailed = c =>
                     {
-                        Debug.WriteLine(context.Request);
-                        // context.HandleResponse();
-                        return System.Threading.Tasks.Task.FromResult(0);
+                        // Allows for clean processing of authentication failure response (normally returns the exception)
+                        // Ref: https://stackoverflow.com/a/50451116/12802214
+                        c.NoResult();
+                        c.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        //c.Response.ContentType = "text/plain";
+                        //c.Response.WriteAsync(c.Exception.ToString()).Wait();
+                        return System.Threading.Tasks.Task.CompletedTask;
                     }
                 };
             });
 
+            // Add authorization policies
+            // Ref: ASP.NET Core 3 and React, Carl Rippon, React Publishing 2019 (ISBN: 9781789950229) 
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("StaffMember", policy => policy.Requirements.Add(new StaffAuthCheck()));
-                //options.AddPolicy("SuperAdmin", policy => policy.Requirements.Add(new SuperAdminCheck()));
+                options.AddPolicy("SuperAdmin", policy => policy.Requirements.Add(new SuperAuthCheck()));
             });
 
+            // Register handler for dependency injection
+            services.AddScoped<IAuthorizationHandler, StaffAuthCheckHandler>();
+            services.AddScoped<IAuthorizationHandler, SuperAuthCheckHandler>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddControllers();
         }
@@ -94,6 +106,6 @@ namespace TCStudentRecordManagement
         }
     }
 
-    
+
 
 }

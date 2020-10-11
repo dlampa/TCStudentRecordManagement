@@ -83,33 +83,41 @@ namespace TCStudentRecordManagement.Auth
                     }
                     else
                     {
-                        throw new SecurityTokenValidationException($"[LOGIN] FAIL User with auth token belonging to {payload.Email} not found in database");
+                        throw new SecurityTokenValidationException($"[LOGIN] FAILURE User with auth token belonging to {payload.Email} not found in database");
                     }
+                }
+
+                // Convert token to Identity
+                if (payload != null)
+                {
+                    ClaimsPrincipal principal = new ClaimsPrincipal();
+                    principal.AddIdentity(new ClaimsIdentity(claims, "Google"));
+                    return principal;
+                }
+                else
+                {
+                    throw new SecurityTokenValidationException($"[LOGIN] FAIL Unable to authenticate user with auth token belonging to {payload?.Email}");
                 }
             }
             catch (Exception ex)
             {
                 // TODO fix: 
                 // 1. Check for the type of exception and adapt message accordingly
-                Logger.Msg<GoogleTokenValidator>(new SecurityTokenValidationException($"[LOGIN] FAIL {ex.Message}"));
-                throw;
-            }
-
-
-            // Convert token to Identity
-            try
-            {
-                ClaimsPrincipal principal = new ClaimsPrincipal();
-                principal.AddIdentity(new ClaimsIdentity(claims, "Google"));
-                return principal;
-            }
-            catch (Exception ex)
-            {
-                Logger.Msg(ex);
-                throw new SecurityTokenValidationException($"[LOGIN] FAIL Unable to authenticate user with auth token belonging to {payload.Email}");
+                if (ex.InnerException.Message != null)
+                {
+                    Logger.Msg<GoogleTokenValidator>(new SecurityTokenValidationException($"[LOGIN] FAILURE {ex.InnerException.Message}"));
+                }
+                else
+                {
+                    Logger.Msg<GoogleTokenValidator>(new SecurityTokenValidationException($"[LOGIN] FAILURE {ex.Message}"));
+                }
+                // TODO Manage this better
+                throw new SecurityTokenValidationException();
             }
 
         }
-    }
 
+    }
 }
+
+

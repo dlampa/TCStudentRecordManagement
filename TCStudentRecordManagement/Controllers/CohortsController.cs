@@ -34,7 +34,8 @@ namespace TCStudentRecordManagement.Controllers
         // Using PUT for addition methods as PUT implies that resource will only be added once.
         // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
         [HttpPut]
-        [Authorize]
+        //[Authorize]
+        [Authorize(Policy = "StaffMember")]
         [Route("/cohorts/add")]
         public ActionResult AddCohort_Target(string name, string startDate, string endDate)
         {
