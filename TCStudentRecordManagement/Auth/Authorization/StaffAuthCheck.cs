@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using TCStudentRecordManagement.Utils;
 using TCStudentRecordManagement.Models;
+using System.Security.Claims;
 
 namespace TCStudentRecordManagement.Auth.Authorization
 {
@@ -37,7 +38,7 @@ namespace TCStudentRecordManagement.Auth.Authorization
             }
 
             // Check if the user is a Staff group member or a Super Admin (Super Admin supercedes Staff rights, so it's acceptable)
-            if (context.User.Claims.Where(x => x.Type == "Role" && (x.Value == "Staff" | x.Value == "Super")).Count() == 1)
+            if (context.User.Claims.Where(x => x.Type == System.Security.Claims.ClaimTypes.Role && (x.Value == "Staff" | x.Value == "SuperAdmin")).Count() == 1)
             {
                 // Return success
                 context.Succeed(requirement);

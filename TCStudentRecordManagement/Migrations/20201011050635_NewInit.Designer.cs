@@ -10,8 +10,8 @@ using TCStudentRecordManagement.Models;
 namespace TCStudentRecordManagement.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20201007235323_Staff_TableRename")]
-    partial class Staff_TableRename
+    [Migration("20201011050635_NewInit")]
+    partial class NewInit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -61,24 +61,6 @@ namespace TCStudentRecordManagement.Migrations
                         .HasName("FK_Attendance_Student");
 
                     b.ToTable("attendance");
-
-                    b.HasData(
-                        new
-                        {
-                            RecordID = -1,
-                            AttendanceStateID = -1,
-                            Date = new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StaffID = -1,
-                            StudentID = -1
-                        },
-                        new
-                        {
-                            RecordID = -2,
-                            AttendanceStateID = -2,
-                            Date = new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StaffID = -1,
-                            StudentID = -4
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.AttendanceState", b =>
@@ -97,23 +79,6 @@ namespace TCStudentRecordManagement.Migrations
                     b.HasKey("StateID");
 
                     b.ToTable("attendance_states");
-
-                    b.HasData(
-                        new
-                        {
-                            StateID = -1,
-                            Description = "Present"
-                        },
-                        new
-                        {
-                            StateID = -2,
-                            Description = "Absent with notice"
-                        },
-                        new
-                        {
-                            StateID = -3,
-                            Description = "Absent without notice"
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.Cohort", b =>
@@ -140,29 +105,6 @@ namespace TCStudentRecordManagement.Migrations
                     b.HasKey("CohortID");
 
                     b.ToTable("cohorts");
-
-                    b.HasData(
-                        new
-                        {
-                            CohortID = -9999,
-                            EndDate = new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999),
-                            Name = "Common",
-                            StartDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            CohortID = -1,
-                            EndDate = new DateTime(2020, 10, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Name = "4.1 Summer/Autumn 2020",
-                            StartDate = new DateTime(2020, 6, 15, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            CohortID = -2,
-                            EndDate = new DateTime(2020, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Name = "4.2 Autumn/Winter 2020",
-                            StartDate = new DateTime(2020, 8, 15, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.Notice", b =>
@@ -202,22 +144,6 @@ namespace TCStudentRecordManagement.Migrations
                         .HasName("FK_Notice_Staff");
 
                     b.ToTable("notices");
-
-                    b.HasData(
-                        new
-                        {
-                            NoticeID = -1,
-                            CohortID = -1,
-                            StaffID = -1,
-                            ValidFrom = new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            NoticeID = -2,
-                            CohortID = -2,
-                            StaffID = -1,
-                            ValidFrom = new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.Staff", b =>
@@ -243,14 +169,6 @@ namespace TCStudentRecordManagement.Migrations
                         .HasName("FK_Staff_User");
 
                     b.ToTable("staff");
-
-                    b.HasData(
-                        new
-                        {
-                            StaffID = -1,
-                            SuperUser = false,
-                            UserID = 6
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.Student", b =>
@@ -283,38 +201,6 @@ namespace TCStudentRecordManagement.Migrations
                         .HasName("FK_Student_User");
 
                     b.ToTable("students");
-
-                    b.HasData(
-                        new
-                        {
-                            StudentID = -1,
-                            CohortID = -1,
-                            UserID = 1
-                        },
-                        new
-                        {
-                            StudentID = -2,
-                            CohortID = -1,
-                            UserID = 2
-                        },
-                        new
-                        {
-                            StudentID = -3,
-                            CohortID = -1,
-                            UserID = 3
-                        },
-                        new
-                        {
-                            StudentID = -4,
-                            CohortID = -2,
-                            UserID = 4
-                        },
-                        new
-                        {
-                            StudentID = -5,
-                            CohortID = -2,
-                            UserID = 5
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.Task", b =>
@@ -366,93 +252,6 @@ namespace TCStudentRecordManagement.Migrations
                         .HasName("FK_Task_Unit");
 
                     b.ToTable("tasks");
-
-                    b.HasData(
-                        new
-                        {
-                            TaskID = -1,
-                            CohortID = -9999,
-                            EndDate = new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999),
-                            StartDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Classroom instruction",
-                            TypeID = -1,
-                            UnitID = -1
-                        },
-                        new
-                        {
-                            TaskID = -2,
-                            CohortID = -9999,
-                            EndDate = new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999),
-                            StartDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Online self-study",
-                            TypeID = -2,
-                            UnitID = -1
-                        },
-                        new
-                        {
-                            TaskID = -3,
-                            CohortID = -9999,
-                            EndDate = new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999),
-                            StartDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Break",
-                            TypeID = -3,
-                            UnitID = -1
-                        },
-                        new
-                        {
-                            TaskID = -4,
-                            CohortID = -1,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 6, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Tic-Tac-Toe",
-                            TypeID = -5,
-                            UnitID = -2
-                        },
-                        new
-                        {
-                            TaskID = -5,
-                            CohortID = -1,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 9, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 9, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Entity Framework Practice 2: Cars",
-                            TypeID = -4,
-                            UnitID = -13
-                        },
-                        new
-                        {
-                            TaskID = -6,
-                            CohortID = -2,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 9, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 9, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "React/Redux Group Milestone 2",
-                            TypeID = -6,
-                            UnitID = -7
-                        },
-                        new
-                        {
-                            TaskID = -7,
-                            CohortID = -2,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 7, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Personal Portfolio: Milestone 1",
-                            TypeID = -6,
-                            UnitID = -15
-                        },
-                        new
-                        {
-                            TaskID = -8,
-                            CohortID = -2,
-                            DocURL = "http://does-not-exist.com/",
-                            EndDate = new DateTime(2020, 9, 23, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StartDate = new DateTime(2020, 7, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Title = "Javascript Todo App",
-                            TypeID = -5,
-                            UnitID = -4
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.TaskType", b =>
@@ -471,43 +270,6 @@ namespace TCStudentRecordManagement.Migrations
                     b.HasKey("TypeID");
 
                     b.ToTable("task_types");
-
-                    b.HasData(
-                        new
-                        {
-                            TypeID = -1,
-                            Description = "Classroom lectures"
-                        },
-                        new
-                        {
-                            TypeID = -2,
-                            Description = "Online self-study"
-                        },
-                        new
-                        {
-                            TypeID = -3,
-                            Description = "Break"
-                        },
-                        new
-                        {
-                            TypeID = -4,
-                            Description = "Practice"
-                        },
-                        new
-                        {
-                            TypeID = -5,
-                            Description = "Weekend assignment"
-                        },
-                        new
-                        {
-                            TypeID = -6,
-                            Description = "Milestone"
-                        },
-                        new
-                        {
-                            TypeID = -7,
-                            Description = "Capstone"
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.Timesheet", b =>
@@ -560,89 +322,7 @@ namespace TCStudentRecordManagement.Migrations
 
                     b.HasKey("UnitID");
 
-                    b.ToTable("topics");
-
-                    b.HasData(
-                        new
-                        {
-                            UnitID = -1,
-                            Description = "Generic"
-                        },
-                        new
-                        {
-                            UnitID = -2,
-                            Description = "C# fundamentals"
-                        },
-                        new
-                        {
-                            UnitID = -3,
-                            Description = "HTML5 and CSS"
-                        },
-                        new
-                        {
-                            UnitID = -4,
-                            Description = "Javascript fundamentals"
-                        },
-                        new
-                        {
-                            UnitID = -5,
-                            Description = "Javascript AJAX and API"
-                        },
-                        new
-                        {
-                            UnitID = -6,
-                            Description = "React fundamentals"
-                        },
-                        new
-                        {
-                            UnitID = -7,
-                            Description = "React/Redux"
-                        },
-                        new
-                        {
-                            UnitID = -8,
-                            Description = "SQL fundamentals"
-                        },
-                        new
-                        {
-                            UnitID = -9,
-                            Description = "Wordpress"
-                        },
-                        new
-                        {
-                            UnitID = -10,
-                            Description = "PHP fundamentals"
-                        },
-                        new
-                        {
-                            UnitID = -11,
-                            Description = "PHP APIs"
-                        },
-                        new
-                        {
-                            UnitID = -12,
-                            Description = "C# OOP"
-                        },
-                        new
-                        {
-                            UnitID = -13,
-                            Description = "C# Entity Framework"
-                        },
-                        new
-                        {
-                            UnitID = -14,
-                            Description = "C# MVC"
-                        },
-                        new
-                        {
-                            UnitID = -15,
-                            Description = "C# WebAPI"
-                        },
-                        new
-                        {
-                            UnitID = -16,
-                            Description = "C# WebAPI and React"
-                        });
+                    b.ToTable("units");
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.User", b =>
@@ -675,56 +355,6 @@ namespace TCStudentRecordManagement.Migrations
                     b.HasKey("UserID");
 
                     b.ToTable("users");
-
-                    b.HasData(
-                        new
-                        {
-                            UserID = 1,
-                            Active = false,
-                            Email = "john.dough@abc.com",
-                            Firstname = "John",
-                            Lastname = "Dough"
-                        },
-                        new
-                        {
-                            UserID = 2,
-                            Active = false,
-                            Email = "anne.jackson@abc.com",
-                            Firstname = "Anne",
-                            Lastname = "Jackson"
-                        },
-                        new
-                        {
-                            UserID = 3,
-                            Active = false,
-                            Email = "ivan.patterson@abc.com",
-                            Firstname = "Ivan",
-                            Lastname = "Patterson"
-                        },
-                        new
-                        {
-                            UserID = 4,
-                            Active = false,
-                            Email = "trevor.noah@abc.com",
-                            Firstname = "Trevor",
-                            Lastname = "Noah"
-                        },
-                        new
-                        {
-                            UserID = 5,
-                            Active = false,
-                            Email = "peter.patsie@abc.com",
-                            Firstname = "Peter",
-                            Lastname = "Patsie"
-                        },
-                        new
-                        {
-                            UserID = 6,
-                            Active = false,
-                            Email = "jane.smitherson@abc.com",
-                            Firstname = "Jane",
-                            Lastname = "Smitherson"
-                        });
                 });
 
             modelBuilder.Entity("TCStudentRecordManagement.Models.Attendance", b =>

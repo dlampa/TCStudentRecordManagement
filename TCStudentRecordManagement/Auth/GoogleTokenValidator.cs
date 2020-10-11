@@ -72,7 +72,9 @@ namespace TCStudentRecordManagement.Auth
                 using (DataContext _DataContext = new DataContext())
                 {
                     // Get DB record associated with the Email, if it exists.
+                    
                     User userData = _DataContext.Users.Where(x => x.Email == payload.Email).FirstOrDefault();
+                    userData.StaffData = _DataContext.Staff.Where(x => x.UserID == userData.UserID).FirstOrDefault();
 
                     if (userData != null)
                     {

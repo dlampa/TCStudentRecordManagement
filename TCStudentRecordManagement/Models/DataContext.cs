@@ -84,7 +84,7 @@ namespace TCStudentRecordManagement.Models
 
                 List<Staff> sampleStaffMembers = new List<Staff>()
                 {
-                    new Staff {StaffID = -1, UserID = 6, SuperUser = false }
+                    new Staff { StaffID = -1, UserID = 6, SuperUser = false }
                 };
 
                 if (sampleData) sampleStaffMembers.ForEach(x => entity.HasData(x));
@@ -103,6 +103,8 @@ namespace TCStudentRecordManagement.Models
                     entity.HasData(new Cohort { CohortID = -1, Name = "4.1 Summer/Autumn 2020", StartDate = new DateTime(2020, 6, 15), EndDate = new DateTime(2020, 10, 30) });
                     entity.HasData(new Cohort { CohortID = -2, Name = "4.2 Autumn/Winter 2020", StartDate = new DateTime(2020, 8, 15), EndDate = new DateTime(2020, 12, 31) });
                 }
+
+               
             });
 
             // Students
@@ -121,7 +123,7 @@ namespace TCStudentRecordManagement.Models
                 entity.HasOne(student => student.CohortMember)
                 .WithMany(cohort => cohort.Students)
                 .HasForeignKey(student => student.CohortID)
-                .OnDelete(DeleteBehavior.Cascade) // CHANGE TO RESTRICT
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName($"FK_{nameof(Student)}_{nameof(Cohort)}");
 
                 // Sample data
@@ -312,7 +314,7 @@ namespace TCStudentRecordManagement.Models
                 entity.HasOne(attendance => attendance.StudentDetails)
                 .WithMany(students => students.AttendanceRecord)
                 .HasForeignKey(attendance => attendance.StudentID)
-                .OnDelete(DeleteBehavior.Cascade) // CHANGE TO RESTRICT
+                .OnDelete(DeleteBehavior.Restrict) 
                 .HasConstraintName($"FK_{nameof(Attendance)}_{nameof(Student)}");
 
                 entity.HasOne(attendance => attendance.RecordedBy)
