@@ -18,7 +18,6 @@ namespace TCStudentRecordManagement
 {
     public class Program
     {
-
         public static void Main(string[] args)
         {
             // Parse command line options. Configuration based on CommandLine library documentation/wiki:
@@ -43,6 +42,7 @@ namespace TCStudentRecordManagement
                 LogConfig.MinimumLevel.Debug()
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
                     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Debug)
+                    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Debug)
                     .MinimumLevel.Override("TCStudentRecordManagement", LogEventLevel.Debug)
                     .MinimumLevel.Override("TCStudentRecordManagement.Controllers", LogEventLevel.Debug)
                     .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Debug)
@@ -53,6 +53,7 @@ namespace TCStudentRecordManagement
                 LogConfig.MinimumLevel.Error()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
                 .MinimumLevel.Override("TCStudentRecordManagement", LogEventLevel.Information)
                 .MinimumLevel.Override("TCStudentRecordManagement.Controllers", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
@@ -110,8 +111,6 @@ namespace TCStudentRecordManagement
             }
             
         }
-
-
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)

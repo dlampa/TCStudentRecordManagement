@@ -70,18 +70,18 @@ namespace TCStudentRecordManagement.Utils
         }
 
         // Exception logger with Context specification
-        public static void Msg<T>(Exception ex)
+        public static void Msg<T>(Exception ex, LogEventLevel level = LogEventLevel.Error)
         {
             string assembly = typeof(T).Name == "Program" ? "" : $"[{typeof(T).Name}] ";
 
-            Log.ForContext<T>().Error(ex.Message);
+            Msg<T>(ex.Message, level);
             Log.ForContext<T>().Debug(ex.StackTrace);
             Log.ForContext<T>().Debug(ex.Source);
 
             // Check for inner exceptions
             if (ex.InnerException != null)
             {
-                Log.ForContext<T>().Error(ex.InnerException.Message);
+                Msg<T>(ex.InnerException.Message, level);
                 Log.ForContext<T>().Debug(ex.InnerException.StackTrace);
                 Log.ForContext<T>().Debug(ex.InnerException.Source);
             }

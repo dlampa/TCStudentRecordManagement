@@ -7,13 +7,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TCStudentRecordManagement.Controllers.BLL;
+using TCStudentRecordManagement.Controllers.Exceptions;
+using TCStudentRecordManagement.Controllers.DTO;
 using TCStudentRecordManagement.Models;
 using TCStudentRecordManagement.Utils;
 
 
 namespace TCStudentRecordManagement.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/cohorts")]
     [ApiController]
     public partial class CohortsController : ControllerBase
     {
@@ -24,38 +27,17 @@ namespace TCStudentRecordManagement.Controllers
             _context = context;
         }
 
-        // GET: api/Cohorts
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cohort>>> All()
+        // GET: All Cohorts [NO BLL] 
+        [HttpGet("list")]
+        public async Task<ActionResult<IEnumerable<Cohort>>> List()
         {
             return await _context.Cohorts.ToListAsync();
         }
 
-        // Using PUT for addition methods as PUT implies that resource will only be added once.
-        // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
-        [HttpPut]
-        [Authorize(Policy = "StaffMember")]
-        [Route("/cohorts/add")]
-        public ActionResult AddCohort_Target(string name, string startDate, string endDate)
-        {
-            // This will by default check if there is Authorization to execute. If there isn't an authorization, then API server automatically
-            // returns 401 response.
-
-         
-            // Check if there is an authorization
-
-            // Call BLL Cohort Add method with all the parameters
-
-            // Catch errors and return exceptions as appropriate
-            Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ADD] {name}", Serilog.Events.LogEventLevel.Information);
-
-            
-            return Ok(new { Name = name, StartDate = startDate, EndDate = endDate });
-        }
-
-        // GET: api/Cohorts/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Cohort>> GetCohort(int id)
+        // GET: Cohort by CohortID [NO BLL]
+        [HttpGet]
+        [Route("/cohorts/get")]
+        public async Task<ActionResult<Cohort>> Get(int id)
         {
             var cohort = await _context.Cohorts.FindAsync(id);
 
@@ -66,6 +48,52 @@ namespace TCStudentRecordManagement.Controllers
 
             return cohort;
         }
+
+        // Using PUT for addition methods as PUT implies that resource will only be added once.
+        // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
+        [HttpPut]
+        [Authorize(Policy = "StaffMember")]
+        [Route("/cohorts/add")]
+        public async Task<ActionResult> AddCohort_Target(string name, DateTime startDate, DateTime endDate)
+        {
+            // This will by default check if there is Authorization to execute. If there isn't an authorization, then API server automatically
+            // returns 401 response.
+
+            // Call BLL Cohort Add method with all the parameters
+            object BLLResponse = new CohortBLL(_context).AddCohort(name: name, startDate: startDate, endDate: endDate);
+
+            // Get the base class for the response
+            // Ref: https://docs.microsoft.com/en-us/dotnet/api/system.type.basetype?view=netcore-3.1
+            if (BLLResponse.GetType().BaseType == typeof(Exception))
+            {
+                // Create log entries for Debug log
+                ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<CohortsController>((Exception)ex, Serilog.Events.LogEventLevel.Debug) );
+
+                // Return response from API
+                return BadRequest(new { errors = ((APIException)BLLResponse).Exceptions.Select(x => x.Message).ToArray() });
+            } 
+            else
+            {
+                try
+                {
+                    _context.Cohorts.Add((Cohort)BLLResponse);
+                    await _context.SaveChangesAsync();
+                    Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ADD] {name} successful", Serilog.Events.LogEventLevel.Information);
+                    return Ok(BLLResponse);
+                }
+                catch (Exception ex)
+                {
+                    // Local log entry. Database reconciliation issues are more serious so reported as Error
+                    Logger.Msg<CohortsController>($"[ADD] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+
+                    // Return response to client
+                    return StatusCode(500, new { errors = "Database update failed. Contact the administrator to resolve this issue."});
+                }
+            }
+
+        }
+
+        
 
         // PUT: api/Cohorts/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
