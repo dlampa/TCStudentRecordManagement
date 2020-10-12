@@ -78,6 +78,11 @@ namespace TCStudentRecordManagement.Auth
 
                     if (userData != null)
                     {
+                        if (!userData.Active)
+                        {
+                            throw new SecurityTokenValidationException($"[LOGIN] FAILURE User {payload.Email} attempted to login but set to inactive");
+                        }
+                            
                         bool userIsStaff = userData.StaffData != null;
                         bool userIsSuperUser = userIsStaff ? userData.StaffData.SuperUser : false;
                         claims.Add(new Claim(ClaimTypes.Role, (userIsSuperUser ? "SuperAdmin" : userIsStaff ? "Staff" : "Student")));
@@ -105,7 +110,7 @@ namespace TCStudentRecordManagement.Auth
             {
                 // TODO fix: 
                 // 1. Check for the type of exception and adapt message accordingly
-                if (ex.InnerException.Message != null)
+                if (ex.InnerException?.Message != null)
                 {
                     Logger.Msg<GoogleTokenValidator>(new SecurityTokenValidationException($"[LOGIN] FAILURE {ex.InnerException.Message}"));
                 }

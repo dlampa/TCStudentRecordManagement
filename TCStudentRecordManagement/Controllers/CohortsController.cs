@@ -34,7 +34,6 @@ namespace TCStudentRecordManagement.Controllers
         // Using PUT for addition methods as PUT implies that resource will only be added once.
         // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
         [HttpPut]
-        //[Authorize]
         [Authorize(Policy = "StaffMember")]
         [Route("/cohorts/add")]
         public ActionResult AddCohort_Target(string name, string startDate, string endDate)
@@ -51,7 +50,7 @@ namespace TCStudentRecordManagement.Controllers
             Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ADD] {name}", Serilog.Events.LogEventLevel.Information);
 
             
-            return Ok();
+            return Ok(new { Name = name, StartDate = startDate, EndDate = endDate });
         }
 
         // GET: api/Cohorts/5

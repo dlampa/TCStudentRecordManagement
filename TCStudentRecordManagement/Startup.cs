@@ -24,6 +24,7 @@ namespace TCStudentRecordManagement
 {
     public class Startup
     {
+        readonly string CORSAllowedOrigins = "_CORSAllowedOrigins";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -39,6 +40,22 @@ namespace TCStudentRecordManagement
             // Add Context with SQL Server connection with parameters from appsettings.json
             // Ref: https://elanderson.net/2019/11/entity-framework-core-no-database-provider-has-been-configured-for-this-dbcontext/
             services.AddDbContext<DataContext>(options => options.UseSqlServer(Configuration["sqldb:ConnectionString"]));
+
+            // CORS Configuration - will have to be adapted for the specific configuration on deployment
+            // Ref: https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-3.1
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(CORSAllowedOrigins,
+                                  builder =>
+                                  {
+                                      // Add host address from localsettings.json - Ref: https://stackoverflow.com/a/41330941/12802214
+                                      builder.WithOrigins(Configuration.GetSection("CORSAllowedOrigins").GetChildren().ToArray().Select(x => x.Value).ToArray())
+                                                          .AllowAnyHeader()
+                                                          .AllowAnyMethod();
+                                      /*builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); */
+                                  });
+            });
 
             // Add authentication service using JWT token validation
             services.AddAuthentication(options =>
@@ -93,6 +110,8 @@ namespace TCStudentRecordManagement
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(CORSAllowedOrigins);
 
             app.UseAuthentication();
 
