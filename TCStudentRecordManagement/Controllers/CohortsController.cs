@@ -117,8 +117,6 @@ namespace TCStudentRecordManagement.Controllers
 
             if (CohortExists(cohort.CohortID))
             {
-                // This will by default check if there is Authorization to execute. If there isn't an authorization, then API server automatically
-                // returns 401 response.
 
                 // Call BLL Cohort Add method with all the parameters
                 object BLLResponse = new CohortBLL(_context).ModifyCohort(cohort: cohort);

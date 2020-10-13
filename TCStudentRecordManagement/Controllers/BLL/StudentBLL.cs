@@ -32,7 +32,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
                 { "firstname parameter cannot be empty.", firstname == null || firstname.Trim() == string.Empty },
                 { "lastname parameter cannot be empty", lastname == null || lastname.Trim() == string.Empty },
                 { "Email needs to be a valid email address", email == null || !Regex.IsMatch(email, @"^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$") },
-                { "Email adddress needs to be unique in the database", email != null && _context.Users.Any(x => x.Email == email) },
+                { "Email address needs to be unique in the database (student record already exists)", email != null && _context.Users.Any(x => x.Email == email) && _context.Students.Any(x => x.UserID == _context.Users.Where(y => y.Email == email).First().UserID) },
                 { "Email address domain not found in the list of valid domains", email != null && !APIConfig.Configuration.GetSection("ValidEmailDomains").GetChildren().ToArray().Select(x => x.Value).ToArray().Contains(email.Split("@")?[1]??"") },
                 { "Specified CohortID does not exist", !_context.Cohorts.Any(x => x.CohortID == cohortID) },
                 { "Specified cohort is inactive.", !(_context.Cohorts.Any(x => x.CohortID == cohortID && DateTime.Now >= x.StartDate && DateTime.Now <= x.EndDate) || userIsSuperAdmin) }
@@ -49,8 +49,19 @@ namespace TCStudentRecordManagement.Controllers.BLL
                 string dbFirstname = String.Join(" ", firstname.Trim().Split(" ").Select(x => $"{x.Substring(0, 1).ToUpper()}{x.Substring(1)?.ToLower()}").ToArray());
                 string dbLastname = String.Join(" ", lastname.Trim().Split(" ").Select(x => $"{x.Substring(0, 1).ToUpper()}{x.Substring(1)?.ToLower()}").ToArray());
 
-                // Create an anonymous object containing all data needed to create the user and pass back to API Target
-                object newDbObject = new { Firstname = dbFirstname, Lastname = dbLastname, Email = email, Active = active, CohortID = cohortID, BearTracksID = bearTracksID };
+                // Create a dictionary containing all data needed to create the user and pass back to API Target
+                Dictionary<string, object> newDbObject = new Dictionary<string, object>()
+                {
+                    { "Firstname", dbFirstname },
+                    { "Lastname", dbLastname },
+                    { "Email", email },
+                    { "Active", active },
+                    { "CohortID", cohortID },
+                    { "BearTracksID", bearTracksID },
+                    { "UserAlreadyInUsersTable", _context.Users.Any(x => x.Email == email) }
+                };
+
+                //object newDbObject = new { Firstname = dbFirstname, Lastname = dbLastname, Email = email, Active = active, CohortID = cohortID, BearTracksID = bearTracksID };
 
                 return newDbObject;
             }

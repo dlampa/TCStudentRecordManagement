@@ -14,7 +14,7 @@ using TCStudentRecordManagement.Utils;
 namespace TCStudentRecordManagement.Controllers
 {
     [Route("/users")]
-    [Authorize(Policy = "StaffMember")]
+    [Authorize(Policy = "SuperAdmin")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -27,7 +27,6 @@ namespace TCStudentRecordManagement.Controllers
 
         // GET: All Users [NO BLL] [Return DTO]
         [HttpGet("list")]
-        [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult<IEnumerable<UserDTO>>> List()
         {
             // Convert User to UserDTO
@@ -54,49 +53,74 @@ namespace TCStudentRecordManagement.Controllers
             return user;
         }
 
-        // PUT: api/Users/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        // PUT: Activate/Deactivate User [NO BLL] [Return DTO]
+        [HttpPut("active")]
+        public async Task<ActionResult> ChangeActiveState(int id, bool state)
         {
-            if (id != user.UserID)
-            {
-                return BadRequest();
-            }
+            User user = await _context.Users.FindAsync(id);
 
-            _context.Entry(user).State = EntityState.Modified;
+            if (user == null)
+            {
+                Logger.Msg<UsersController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ACTIVE] UserID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                return NotFound();
+            }
 
             try
             {
+                // Change active bit to match parameter
+                user.Active = state;
+
+                // Save to DB
                 await _context.SaveChangesAsync();
+
+                Logger.Msg<UsersController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ACTIVE] UserID: {id} {(state ? "activated" : "deactivated")}", Serilog.Events.LogEventLevel.Information);
+                return Ok(new UserDTO(user));
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                Logger.Msg<UsersController>($"[ACTIVE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+
+                // Return response to client
+                return StatusCode(500, new { errors = "Database update failed. Contact the administrator" });
             }
 
-            return NoContent();
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        // DELETE: Delete user [NO BLL] [Return STATUS]
+        [HttpDelete("delete")]
+        public async Task<ActionResult> Delete(int id)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            // Find existing Cohort record in DB
+            User user = await _context.Users.FindAsync(id);
 
-            return CreatedAtAction("GetUser", new { id = user.UserID }, user);
+            if (user == null)
+            {
+                Logger.Msg<UsersController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] UserID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                return NotFound();
+            }
+
+            try
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+
+                Logger.Msg<UsersController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] UserID: {id} success", Serilog.Events.LogEventLevel.Information);
+                return Ok(new UserDTO(user));
+            }
+            catch (Exception ex)
+            {
+                // Probably due to FK violation
+                Logger.Msg<UsersController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+
+                // Return response to client
+                return StatusCode(500, new { errors = "Database update failed. Perhaps there are students in this cohort?" });
+            }
+
         }
+
+
+
+
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
