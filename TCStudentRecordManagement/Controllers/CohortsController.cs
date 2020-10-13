@@ -16,7 +16,7 @@ using TCStudentRecordManagement.Utils;
 
 namespace TCStudentRecordManagement.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "StaffMember")]
     [Route("/cohorts")]
     [ApiController]
     public partial class CohortsController : ControllerBase
@@ -30,7 +30,6 @@ namespace TCStudentRecordManagement.Controllers
 
         // GET: All Cohorts [NO BLL] [Return DTO]
         [HttpGet("list")]
-        [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult<IEnumerable<CohortDTO>>> List()
         {
             // Convert Cohort to CohortDTO
@@ -45,7 +44,6 @@ namespace TCStudentRecordManagement.Controllers
 
         // GET: Cohort by CohortID [NO BLL] [Return DTO]
         [HttpGet("get")]
-        [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult<CohortDTO>> Get(int id)
         {
             Cohort cohort = await _context.Cohorts.FindAsync(id);
