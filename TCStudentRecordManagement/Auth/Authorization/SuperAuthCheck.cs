@@ -37,7 +37,7 @@ namespace TCStudentRecordManagement.Auth.Authorization
             }
 
             // Check if the user is a a Super Admin
-            if (context.User.Claims.Where(x => x.Type == "Role").Select(x => x.Value == "Super").First())
+            if (context.User.Claims.Any(x => x.Type == System.Security.Claims.ClaimTypes.Role && x.Value == "SuperAdmin"))
             {
                 // Return success
                 context.Succeed(requirement);

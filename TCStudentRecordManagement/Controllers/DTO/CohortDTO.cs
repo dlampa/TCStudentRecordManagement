@@ -8,9 +8,10 @@ namespace TCStudentRecordManagement.Controllers.DTO
 {
     public class CohortDTO
     {
-        public string Name { get; private set; }
-        public DateTime StartDate { get; private set; }
-        public DateTime EndDate { get; private set; }
+        public int CohortID { get; set; }
+        public string Name { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public CohortDTO()
         {
 
@@ -18,9 +19,14 @@ namespace TCStudentRecordManagement.Controllers.DTO
 
         public CohortDTO(Cohort inputCohort)
         {
-            Name = inputCohort.Name;
-            StartDate = inputCohort.StartDate;
-            EndDate = inputCohort.EndDate;
+            if (inputCohort != null)
+            {
+                CohortID = inputCohort.CohortID;
+                Name = inputCohort.Name;
+                StartDate = inputCohort.StartDate;
+                EndDate = inputCohort.EndDate;
+            }
         }
+
     }
 }

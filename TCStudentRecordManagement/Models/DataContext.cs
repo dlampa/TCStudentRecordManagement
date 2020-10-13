@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 
 namespace TCStudentRecordManagement.Models
@@ -27,7 +28,11 @@ namespace TCStudentRecordManagement.Models
             }
             
             optionsBuilder.EnableSensitiveDataLogging();
-          
+
+            // Disable logging of EF initialization
+            // Ref: https://stackoverflow.com/a/56424676/12802214
+            optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.ContextInitialized));
+
         }
 
         // DbSets for each table
