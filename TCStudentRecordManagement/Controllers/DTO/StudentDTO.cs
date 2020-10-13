@@ -49,5 +49,25 @@ namespace TCStudentRecordManagement.Controllers.DTO
         }
     }
 
+    public class StudentModDTO
+    {
+        // Combines elements of Student and User object properties and is used only for modifying existing Students table records
+
+        public int StudentID { get; set; }
+        public int CohortID { get; set; }
+
+        public string Firstname { get; set; }
+        public string Lastname { get; set; }
+
+        public string Email { get; set; }
+        public bool Active { get; set; }
+
+        public string BearTracksID { get; set; }
+
+        public StudentModDTO()
+        {
+
+        }
+    }
 
 }
