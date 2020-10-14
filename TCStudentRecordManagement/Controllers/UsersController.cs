@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Models;
-using TCStudentRecordManagement.Controllers.DTO;
+using TCStudentRecordManagement.Models.DTO;
 using TCStudentRecordManagement.Utils;
 
 

@@ -1,6 +1,6 @@
 ﻿using TCStudentRecordManagement.Models;
 
-namespace TCStudentRecordManagement.Controllers.DTO
+namespace TCStudentRecordManagement.Models.DTO
 {
     public class UserDTO
     {

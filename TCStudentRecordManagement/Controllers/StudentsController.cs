@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Utils;
 using TCStudentRecordManagement.Models;
 using TCStudentRecordManagement.Controllers.Exceptions;
-using TCStudentRecordManagement.Controllers.DTO;
+using TCStudentRecordManagement.Models.DTO;
 using TCStudentRecordManagement.Controllers.BLL;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -227,7 +227,7 @@ namespace TCStudentRecordManagement.Controllers
                 return NotFound();
             }
 
-        } // End of Modify
+        } // End of ModifyStudent_Target
 
         // PUT: Activate/Deactivate Student [NO BLL] [Return DTO]
         [HttpPut("active")]

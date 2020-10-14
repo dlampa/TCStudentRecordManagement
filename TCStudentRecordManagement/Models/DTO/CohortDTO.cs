@@ -1,8 +1,11 @@
 ﻿using System;
 using TCStudentRecordManagement.Models;
 
-namespace TCStudentRecordManagement.Controllers.DTO
+namespace TCStudentRecordManagement.Models.DTO
 {
+    /// <summary>
+    /// CohortDTO class is used to encapsulate the Cohort object in a form appropriate for add, modify and get API targets
+    /// </summary>
     public class CohortDTO
     {
         public int CohortID { get; set; }

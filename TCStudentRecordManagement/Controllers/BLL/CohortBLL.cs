@@ -2,7 +2,7 @@
 using System.Linq;
 using TCStudentRecordManagement.Models;
 using TCStudentRecordManagement.Controllers.Exceptions;
-using TCStudentRecordManagement.Controllers.DTO;
+using TCStudentRecordManagement.Models.DTO;
 
 
 namespace TCStudentRecordManagement.Controllers.BLL

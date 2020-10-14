@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Controllers.BLL;
 using TCStudentRecordManagement.Controllers.Exceptions;
-using TCStudentRecordManagement.Controllers.DTO;
+using TCStudentRecordManagement.Models.DTO;
 using TCStudentRecordManagement.Models;
 using TCStudentRecordManagement.Utils;
 
