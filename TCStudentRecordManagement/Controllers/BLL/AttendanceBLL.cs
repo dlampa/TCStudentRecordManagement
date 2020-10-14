@@ -72,7 +72,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
         /// <param name="attendance">AttendanceModDTO object with properties to modify</param>
         /// <param name="userClaims">ClaimsPrincipal object containing User Identity</param>
         /// <returns>object Exception or AttendanceModDTO</returns>
-        internal object ModifyAttendance(AttendanceModDTO attendance, ClaimsPrincipal userClaims)
+        internal object ModifyAttendanceBLL(AttendanceModDTO attendance, ClaimsPrincipal userClaims)
         {
 
             // Create a new APIException object to store possible exceptions as checks are performed. 

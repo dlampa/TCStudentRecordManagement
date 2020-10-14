@@ -76,15 +76,13 @@ namespace TCStudentRecordManagement
                         // Ref: https://stackoverflow.com/a/50451116/12802214
                         c.NoResult();
                         c.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                        //c.Response.ContentType = "text/plain";
-                        //c.Response.WriteAsync(c.Exception.ToString()).Wait();
                         return System.Threading.Tasks.Task.CompletedTask;
                     }
                 };
             });
 
             // Add authorization policies
-            // Ref: ASP.NET Core 3 and React, Carl Rippon, React Publishing 2019 (ISBN: 9781789950229) 
+            // Ref: ASP.NET Core 3 and React, Carl Rippon, Pakt Publishing 2019 (ISBN: 9781789950229) 
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("StaffMember", policy => policy.Requirements.Add(new StaffAuthCheck()));

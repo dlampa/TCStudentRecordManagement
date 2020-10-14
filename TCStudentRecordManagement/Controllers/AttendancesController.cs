@@ -15,7 +15,7 @@ using TCStudentRecordManagement.Utils;
 namespace TCStudentRecordManagement.Controllers
 {
     [Route("/attendance")]
-    [Authorize(Policy = "StaffMember")]
+    [Authorize]
     [ApiController]
     public class AttendancesController : ControllerBase
     {
@@ -25,16 +25,25 @@ namespace TCStudentRecordManagement.Controllers
         {
             _context = context;
         }
+        /// <summary>
+        /// Gets the Student attendance records based on StudentID. Students are limited to viewing their own records only.
+        /// </summary>
+        /// <returns></returns>
 
-        // GET: api/Attendances
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Attendance>>> GetAttendanceRecords()
+        public async Task<ActionResult<IEnumerable<Attendance>>> Get_Target()
         {
             return await _context.AttendanceRecords.ToListAsync();
         }
 
+        /// <summary>
+        /// Add attendance record to the database.  Attendance record properties are read from the request body from a JSON representation of the AttendanceDTO object.
+        /// </summary>
+        /// <param name="attendance">AttendanceDTO object containing the new attendance record</param>
+        /// <returns></returns>
         [HttpPut("add")]
-        public async Task<ActionResult> AddAttendance([FromBody] AttendanceDTO attendance)
+        [Authorize(Policy = "StaffMember")]
+        public async Task<ActionResult> AddAttendance_Target([FromBody] AttendanceDTO attendance)
         {
             // Call BLL method to run validation
             object BLLResponse = new AttendanceBLL(_context).AddAttendance(attendance: attendance, userClaims: User);
@@ -82,11 +91,12 @@ namespace TCStudentRecordManagement.Controllers
         }
 
         /// <summary>
-        /// Modify attendance records in the Attendances table
+        /// Modify attendance record in the Attendances table. Modified properties are read from the body of the request from a JSON representation of the AttendanceModDTO object.
         /// </summary>
         /// <param name="attendance">AttendanceModDTO object containing parameters for modification</param>
         /// <returns>API HTTPResponse with embedded AttendanceModDTO object or Exception()[]</returns>
         [HttpPut("modify")]
+        [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> ModifyAttendance([FromBody] AttendanceModDTO attendance)
         {
             
@@ -94,7 +104,7 @@ namespace TCStudentRecordManagement.Controllers
             {
 
                 // Call BLL method to run validation
-                object BLLResponse = new AttendanceBLL(_context).ModifyAttendance(attendance: attendance, userClaims: User);
+                object BLLResponse = new AttendanceBLL(_context).ModifyAttendanceBLL(attendance: attendance, userClaims: User);
 
                 if (BLLResponse.GetType().BaseType == typeof(Exception))
                 {
@@ -138,70 +148,46 @@ namespace TCStudentRecordManagement.Controllers
             {
                 return NotFound();
             }
-            
-        } // End of Modify
-    
 
+        } // End of ModifyAttendance
 
-        // PUT: api/Attendances/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAttendance(int id, Attendance attendance)
+        /// <summary>
+        /// Delete an Attendance record based on RecordID. Available only to Super Admin users.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+
+        [HttpDelete("delete")]
+        [Authorize(Policy = "SuperAdmin")]
+        public async Task<ActionResult> Delete(int id)
         {
-            if (id != attendance.RecordID)
-            {
-                return BadRequest();
-            }
+            // Find existing Cohort record in DB
+            Attendance attendance = await _context.AttendanceRecords.FindAsync(id);
 
-            _context.Entry(attendance).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AttendanceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Attendances
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPost]
-        public async Task<ActionResult<Attendance>> PostAttendance(Attendance attendance)
-        {
-            _context.AttendanceRecords.Add(attendance);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetAttendance", new { id = attendance.RecordID }, attendance);
-        }
-
-        // DELETE: api/Attendances/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Attendance>> DeleteAttendance(int id)
-        {
-            var attendance = await _context.AttendanceRecords.FindAsync(id);
             if (attendance == null)
             {
+                Logger.Msg<AttendancesController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] RecordID: {id} not found", Serilog.Events.LogEventLevel.Debug);
                 return NotFound();
             }
 
-            _context.AttendanceRecords.Remove(attendance);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.AttendanceRecords.Remove(attendance);
+                await _context.SaveChangesAsync();
 
-            return attendance;
-        }
+                Logger.Msg<AttendancesController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] RecordID: {id} success", Serilog.Events.LogEventLevel.Information);
+                return Ok(new AttendanceDTO(attendance));
+            }
+            catch (Exception ex)
+            {
+                // Probably due to FK violation
+                Logger.Msg<CohortsController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+
+                // Return response to client
+                return StatusCode(500, new { errors = "Database update failed. Perhaps there are students in this cohort?" });
+            }
+
+        } // End of Delete
 
         private bool AttendanceExists(int id)
         {
