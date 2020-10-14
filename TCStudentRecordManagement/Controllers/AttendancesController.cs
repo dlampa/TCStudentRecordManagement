@@ -14,7 +14,7 @@ using TCStudentRecordManagement.Utils;
 
 namespace TCStudentRecordManagement.Controllers
 {
-    [Route("/attendance")]
+    [Route("/attendances")]
     [Authorize]
     [ApiController]
     public class AttendancesController : ControllerBase
@@ -25,15 +25,59 @@ namespace TCStudentRecordManagement.Controllers
         {
             _context = context;
         }
+        
         /// <summary>
         /// Gets the Student attendance records based on StudentID. Students are limited to viewing their own records only.
         /// </summary>
         /// <returns></returns>
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Attendance>>> Get_Target()
+        [HttpGet("get")]
+        public async Task<ActionResult<IEnumerable<Attendance>>> Get(int studentID, int attendanceStateID, DateTime startDate, DateTime endDate)
         {
-            return await _context.AttendanceRecords.ToListAsync();
+            // Call GetAttendanceBLL method with all the parameters
+            object BLLResponse = new AttendanceBLL(_context).GetAttendanceBLL(studentID: studentID, attendanceStateID: attendanceStateID, startDate: startDate, endDate: endDate, userClaims: User);
+            
+            // Get the base class for the response
+            // Ref: https://docs.microsoft.com/en-us/dotnet/api/system.type.basetype?view=netcore-3.1
+            if (BLLResponse.GetType().BaseType == typeof(Exception))
+            {
+                // Create log entries for Debug log
+                ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<AttendancesController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
+
+                // Return response from API
+                return BadRequest(new { errors = ((APIException)BLLResponse).Exceptions.Select(x => x.Message).ToArray() });
+            }
+            else
+            {
+                try
+                {
+                    // Create a dictionary to interpret response
+                    Dictionary<string, object> BLLResponseDic = (Dictionary<string, object>)(BLLResponse);
+
+                    // Apply all the criteria with supplied or default values from BLL
+                    IQueryable<Attendance> dbRequest = _context.AttendanceRecords
+                        .Where(x => x.Date >= (DateTime)BLLResponseDic["StartDate"] && x.Date <= (DateTime)BLLResponseDic["EndDate"])
+                        .Where(x => x.StudentID == (int)BLLResponseDic["StudentID"]);
+
+                    // If specific type of attendance is sought (AttendanceStateID != 0) then apply criteria else return all
+                    if ((int)BLLResponseDic["AttendanceStateID"] != 0) dbRequest = dbRequest.Where(x => x.AttendanceStateID == (int)BLLResponseDic["AttendanceStateID"]);
+                    List<Attendance> dbResponse = await dbRequest.ToListAsync();
+
+                    // Convert result to AttendanceDTO
+                    List<AttendanceDTO> response = new List<AttendanceDTO>();
+                    dbResponse.ForEach(x => response.Add(new AttendanceDTO(x)));
+                    
+                    Logger.Msg<AttendancesController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [GET]", Serilog.Events.LogEventLevel.Debug);
+                    return Ok(response);
+                }
+                catch (Exception ex)
+                {
+                    // Local log entry. Database reconciliation issues are more serious so reported as Error
+                    Logger.Msg<AttendancesController>($"[GET] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+
+                    // Return response to client
+                    return StatusCode(500, new { errors = "Database update failed. Contact the administrator to resolve this issue." });
+                }
+            }
         }
 
         /// <summary>
@@ -43,10 +87,10 @@ namespace TCStudentRecordManagement.Controllers
         /// <returns></returns>
         [HttpPut("add")]
         [Authorize(Policy = "StaffMember")]
-        public async Task<ActionResult> AddAttendance_Target([FromBody] AttendanceDTO attendance)
+        public async Task<ActionResult> AddAttendance([FromBody] AttendanceDTO attendance)
         {
             // Call BLL method to run validation
-            object BLLResponse = new AttendanceBLL(_context).AddAttendance(attendance: attendance, userClaims: User);
+            object BLLResponse = new AttendanceBLL(_context).AddAttendanceBLL(attendance: attendance, userClaims: User);
 
             if (BLLResponse.GetType().BaseType == typeof(Exception))
             {

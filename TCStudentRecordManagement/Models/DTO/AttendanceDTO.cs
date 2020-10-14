@@ -3,7 +3,7 @@
 namespace TCStudentRecordManagement.Models.DTO
 {
     /// <summary>
-    /// AttendanceModDTO class is used to encapsulate mutable and immutable properties for Attendance objects (records). Used for transformation of
+    /// AttendanceDTO class is used to encapsulate mutable and immutable properties for Attendance objects (records). Used for transformation of
     /// records for addition and listing
     /// </summary>
     public class AttendanceDTO
@@ -30,6 +30,8 @@ namespace TCStudentRecordManagement.Models.DTO
             Comment = inputAttendance.Comment;
         }
 
+        
+
     }
     /// <summary>
     /// AttendanceModDTO class is used to encapsulate mutable properties for Attendance objects (records)
@@ -54,6 +56,4 @@ namespace TCStudentRecordManagement.Models.DTO
             Comment = inputAttendance.Comment;
         }
     }
-
-    
 }
