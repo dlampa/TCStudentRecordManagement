@@ -36,7 +36,7 @@ namespace TCStudentRecordManagement.Controllers
         {
 
             // Convert TaskType to TaskTypeDTO
-            List<TaskType> taskTypeData= await _context.TaskTypes.ToListAsync();
+            List<TaskType> taskTypeData = await _context.TaskTypes.ToListAsync();
             List<TaskTypeDTO> result = new List<TaskTypeDTO>();
             taskTypeData.ForEach(x => result.Add(new TaskTypeDTO(x)));
 
@@ -45,9 +45,9 @@ namespace TCStudentRecordManagement.Controllers
             return result;
 
         }
-        
+
         /// <summary>
-        /// Add a TaskType record to the TaskTypes table
+        /// Add a TaskType record
         /// </summary>
         /// <param name="name"></param>
         /// <param name="startDate"></param>
@@ -98,25 +98,26 @@ namespace TCStudentRecordManagement.Controllers
             }
 
         }
-/*
-        // PUT: Modify Cohort [CohortBLL] [Return DTO]
+
+        /// <summary>
+        /// Modify an existing TaskType record
+        /// </summary>
+        /// <param name="taskType"></param>
+        /// <returns></returns>
         [HttpPut("modify")]
         [Authorize(Policy = "StaffMember")]
-        public async Task<ActionResult> ModifyCohort_Target([FromBody] CohortDTO cohort)
+        public async Task<ActionResult> ModifyTaskType([FromBody] TaskTypeDTO taskType)
         {
-
-            if (CohortExists(cohort.CohortID))
+            if (TaskTypeExists(taskType.TypeID))
             {
 
-                // Call BLL Cohort Add method with all the parameters
-                object BLLResponse = new CohortBLL(_context).ModifyCohort(cohort: cohort);
+                // Call BLL TaskType Modify method with all the parameters
+                object BLLResponse = new TaskTypeBLL(_context).ModifyTaskTypeBLL(taskType: taskType);
 
-                // Get the base class for the response
-                // Ref: https://docs.microsoft.com/en-us/dotnet/api/system.type.basetype?view=netcore-3.1
                 if (BLLResponse.GetType().BaseType == typeof(Exception))
                 {
                     // Create log entries for Debug log
-                    ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<CohortsController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
+                    ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<TaskTypesController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
 
                     // Return response from API
                     return BadRequest(new { errors = ((APIException)BLLResponse).Exceptions.Select(x => x.Message).ToArray() });
@@ -125,27 +126,27 @@ namespace TCStudentRecordManagement.Controllers
                 {
                     try
                     {
+                        TaskTypeDTO modTaskType = (TaskTypeDTO)BLLResponse;
+
                         // Find the existing record based on ID
-                        Cohort currentRecord = _context.Cohorts.Where(x => x.CohortID == cohort.CohortID).First();
+                        TaskType currentRecord = _context.TaskTypes.Where(x => x.TypeID == modTaskType.TypeID).First();
 
                         // Modify the record
-                        currentRecord.Name = ((Cohort)BLLResponse).Name;
-                        currentRecord.StartDate = ((Cohort)BLLResponse).StartDate;
-                        currentRecord.EndDate = ((Cohort)BLLResponse).EndDate;
+                        currentRecord.Description = modTaskType.Description;
 
                         // Save changes
                         await _context.SaveChangesAsync();
 
-                        Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [MODIFY] CohortID: {cohort.CohortID} successful", Serilog.Events.LogEventLevel.Information);
+                        Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [MODIFY] TypeID: {currentRecord.TypeID} successful", Serilog.Events.LogEventLevel.Information);
 
                         // Return modified record as a DTO
-                        CohortDTO response = new CohortDTO(currentRecord);
+                        TaskTypeDTO response = new TaskTypeDTO(currentRecord);
                         return Ok(response);
                     }
                     catch (Exception ex)
                     {
                         // Local log entry. Database reconciliation issues are more serious so reported as Error
-                        Logger.Msg<CohortsController>($"[MODIFY] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+                        Logger.Msg<TaskTypesController>($"[MODIFY] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
 
                         // Return response to client
                         return StatusCode(500, new { errors = "Database update failed. Contact the administrator to resolve this issue." });
@@ -156,41 +157,44 @@ namespace TCStudentRecordManagement.Controllers
             {
                 return NotFound();
             }
-        } // End of ModifyCohort_Target
+        } // End of ModifyTaskType
 
-        // DELETE: Delete Cohort [NO BLL] [Return STATUS]
+        /// <summary>
+        /// Deletes the TaskType record, provided that there are no FK dependencies
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("delete")]
         [Authorize(Policy = "SuperAdmin")]
         public async Task<ActionResult> Delete(int id)
         {
-            // Find existing Cohort record in DB
-            Cohort cohort = await _context.Cohorts.FindAsync(id);
+            // Find existing TaskType record in DB
+            TaskType taskType = await _context.TaskTypes.FindAsync(id);
 
-            if (cohort == null)
+            if (taskType == null)
             {
-                Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] CohortID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [DELETE] TypeID: {id} not found", Serilog.Events.LogEventLevel.Debug);
                 return NotFound();
             }
 
             try
             {
-                _context.Cohorts.Remove(cohort);
+                _context.TaskTypes.Remove(taskType);
                 await _context.SaveChangesAsync();
 
-                Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] CohortID: {id} success", Serilog.Events.LogEventLevel.Information);
-                return Ok(new CohortDTO(cohort));
+                Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [DELETE] TypeID: {id} success", Serilog.Events.LogEventLevel.Information);
+                return Ok(new TaskTypeDTO(taskType));
             }
             catch (Exception ex)
             {
                 // Probably due to FK violation
-                Logger.Msg<CohortsController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+                Logger.Msg<TaskTypesController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
 
                 // Return response to client
                 return StatusCode(500, new { errors = "Database update failed. Perhaps there are students in this cohort?" });
             }
 
         }
-*/
 
         private bool TaskTypeExists(int id)
         {
