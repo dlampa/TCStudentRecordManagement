@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,68 @@ namespace TCStudentRecordManagement.Controllers
         {
             _context = context;
         }
+
+        /// <summary>
+        /// Gets the Task records based on input criteria. Students are limited to viewing assignments from their own cohort.
+        /// </summary>
+        /// <param name="taskID"></param>
+        /// <param name="cohortID"></param>
+        /// <param name="typeID"></param>
+        /// <param name="unitID"></param>
+        /// <param name="startDate"></param>
+        /// <param name="endDate"></param>
+        /// <returns></returns>
+        [HttpGet("get")]
+        public async Task<ActionResult<IEnumerable<Models.Task>>> Get(int taskID, int cohortID, int typeID, int unitID, DateTime startDate, DateTime endDate)
+        {
+            // Call GetAttendanceBLL method with all the parameters
+            object BLLResponse = new TaskBLL(_context).GetTaskBLL(taskID: taskID, cohortID: cohortID, typeID: typeID, unitID: unitID, startDate: startDate, endDate: endDate, userClaims: User);
+
+            // Get the base class for the response
+            // Ref: https://docs.microsoft.com/en-us/dotnet/api/system.type.basetype?view=netcore-3.1
+            if (BLLResponse.GetType().BaseType == typeof(Exception))
+            {
+                // Create log entries for Debug log
+                ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<AttendancesController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
+
+                // Return response from API
+                return BadRequest(new { errors = ((APIException)BLLResponse).Exceptions.Select(x => x.Message).ToArray() });
+            }
+            else
+            {
+                try
+                {
+                    
+                    TaskDTO BLLResponseDTO = (TaskDTO)(BLLResponse);
+
+                    // Apply all the criteria with supplied or default values from BLL
+                    IQueryable<Models.Task> dbRequest = _context.Tasks
+                        .Where(x => x.StartDate >= BLLResponseDTO.StartDate && x.EndDate <= BLLResponseDTO.EndDate);
+
+                    if (BLLResponseDTO.CohortID != 0) dbRequest = dbRequest.Where(x => x.CohortID == BLLResponseDTO.CohortID);
+                    if (BLLResponseDTO.TypeID != 0) dbRequest = dbRequest.Where(x => x.TypeID == BLLResponseDTO.TypeID);
+                    if (BLLResponseDTO.UnitID != 0) dbRequest = dbRequest.Where(x => x.UnitID == BLLResponseDTO.UnitID);
+                    if (BLLResponseDTO.TaskID != 0) dbRequest = dbRequest.Where(x => x.TaskID == BLLResponseDTO.TaskID);
+                    
+                    List<Models.Task> dbResponse = await dbRequest.ToListAsync();
+
+                    // Convert result to TaskDTO
+                    List<TaskDTO> response = new List<TaskDTO>();
+                    dbResponse.ForEach(x => response.Add(new TaskDTO(x)));
+
+                    Logger.Msg<TasksController>($"[{User.FindFirstValue("email")}] [GET] ", Serilog.Events.LogEventLevel.Debug);
+                    return Ok(response);
+                }
+                catch (Exception ex)
+                {
+                    // Local log entry. Database reconciliation issues are more serious so reported as Error
+                    Logger.Msg<TasksController>($"[GET] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+
+                    // Return response to client
+                    return StatusCode(500, new { errors = "Database update failed. Contact the administrator to resolve this issue." });
+                }
+            }
+        }// End of Get
 
         /// <summary>
         /// Add a new Task record to the Tasks table
@@ -89,7 +152,7 @@ namespace TCStudentRecordManagement.Controllers
         /// <summary>
         /// Modify an existing TaskType record
         /// </summary>
-        /// <param name="taskType"></param>
+        /// <param name="task"></param>
         /// <returns></returns>
         [HttpPut("modify")]
         [Authorize(Policy = "StaffMember")]
