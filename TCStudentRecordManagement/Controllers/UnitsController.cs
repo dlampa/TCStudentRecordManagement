@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Controllers.BLL;
@@ -18,53 +17,51 @@ namespace TCStudentRecordManagement.Controllers
     [Route("[Controller]")]
     [Authorize]
     [ApiController]
-    public class TaskTypesController : ControllerBase
+    public class UnitsController : ControllerBase
     {
         private readonly DataContext _context;
 
-        public TaskTypesController(DataContext context)
+        public UnitsController(DataContext context)
         {
             _context = context;
         }
 
         /// <summary>
-        /// Get a list of all the records from the TaskTypes table
+        /// Get a list of all the records from the Units table
         /// </summary>
         /// <returns></returns>
         [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<TaskTypeDTO>>> List()
+        public async Task<ActionResult<IEnumerable<UnitDTO>>> List()
         {
 
             // Convert TaskType to TaskTypeDTO
-            List<TaskType> taskTypeData = await _context.TaskTypes.ToListAsync();
-            List<TaskTypeDTO> result = new List<TaskTypeDTO>();
-            taskTypeData.ForEach(x => result.Add(new TaskTypeDTO(x)));
+            List<Unit> unitData = await _context.Units.ToListAsync();
+            List<UnitDTO> result = new List<UnitDTO>();
+            unitData.ForEach(x => result.Add(new UnitDTO(x)));
 
             // Log to debug log
-            Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
+            Logger.Msg<UnitsController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
             return result;
 
         }
 
         /// <summary>
-        /// Add a TaskType record
+        /// Add a learning Unit record
         /// </summary>
         /// <param name="description"></param>
         /// <returns></returns>
         [HttpPut("add")]
         [Authorize(Policy = "StaffMember")]
-        public async Task<ActionResult> AddTaskType(string description)
+        public async Task<ActionResult> AddUnit(string description)
         {
 
-            // Call BLL TaskType Add method with all the parameters
-            object BLLResponse = new TaskTypeBLL(_context).AddTaskTypeBLL(description: description);
+            // Call BLL Unit Add method with all the parameters
+            object BLLResponse = new UnitBLL(_context).AddUnitBLL(description: description);
 
-            // Get the base class for the response
-            // Ref: https://docs.microsoft.com/en-us/dotnet/api/system.type.basetype?view=netcore-3.1
             if (BLLResponse.GetType().BaseType == typeof(Exception))
             {
                 // Create log entries for Debug log
-                ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<TaskTypesController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
+                ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<UnitsController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
 
                 // Return response from API
                 return BadRequest(new { errors = ((APIException)BLLResponse).Exceptions.Select(x => x.Message).ToArray() });
@@ -73,22 +70,22 @@ namespace TCStudentRecordManagement.Controllers
             {
                 try
                 {
-                    TaskType newTaskType = new TaskType { Description = ((TaskTypeDTO)BLLResponse).Description };
+                    Unit newUnit = new Unit { Description = ((UnitDTO)BLLResponse).Description };
 
                     // Create the record
-                    _context.TaskTypes.Add(newTaskType);
+                    _context.Units.Add(newUnit);
                     await _context.SaveChangesAsync();
 
-                    Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [ADD] TaskType '{description}' successful", Serilog.Events.LogEventLevel.Information);
+                    Logger.Msg<UnitsController>($"[{User.FindFirstValue("email")}] [ADD] Unit '{description}' successful", Serilog.Events.LogEventLevel.Information);
 
                     // Convert back to DTO and return to user
-                    TaskTypeDTO response = new TaskTypeDTO(newTaskType);
+                    UnitDTO response = new UnitDTO(newUnit);
                     return Ok(response);
                 }
                 catch (Exception ex)
                 {
                     // Local log entry. Database reconciliation issues are more serious so reported as Error
-                    Logger.Msg<TaskTypesController>($"[ADD] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+                    Logger.Msg<UnitsController>($"[ADD] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
 
                     // Return response to client
                     return StatusCode(500, new { errors = "Database update failed. Contact the administrator to resolve this issue." });
@@ -98,24 +95,23 @@ namespace TCStudentRecordManagement.Controllers
         }
 
         /// <summary>
-        /// Modify an existing TaskType record
+        /// Modify an existing Unit record
         /// </summary>
-        /// <param name="taskType"></param>
+        /// <param name="unit"></param>
         /// <returns></returns>
         [HttpPut("modify")]
         [Authorize(Policy = "StaffMember")]
-        public async Task<ActionResult> ModifyTaskType([FromBody] TaskTypeDTO taskType)
+        public async Task<ActionResult> ModifyUnit([FromBody] UnitDTO unit)
         {
-            if (TaskTypeExists(taskType.TypeID))
+            if (UnitExists(unit.UnitID))
             {
-
-                // Call BLL TaskType Modify method with all the parameters
-                object BLLResponse = new TaskTypeBLL(_context).ModifyTaskTypeBLL(taskType: taskType);
+                // Call BLL Unit Modify method with all the parameters
+                object BLLResponse = new UnitBLL(_context).ModifyUnitBLL(unit: unit);
 
                 if (BLLResponse.GetType().BaseType == typeof(Exception))
                 {
                     // Create log entries for Debug log
-                    ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<TaskTypesController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
+                    ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<UnitsController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
 
                     // Return response from API
                     return BadRequest(new { errors = ((APIException)BLLResponse).Exceptions.Select(x => x.Message).ToArray() });
@@ -124,27 +120,27 @@ namespace TCStudentRecordManagement.Controllers
                 {
                     try
                     {
-                        TaskTypeDTO modTaskType = (TaskTypeDTO)BLLResponse;
+                        UnitDTO modUnit = (UnitDTO)BLLResponse;
 
                         // Find the existing record based on ID
-                        TaskType currentRecord = _context.TaskTypes.Where(x => x.TypeID == modTaskType.TypeID).First();
+                        Unit currentRecord = _context.Units.Where(x => x.UnitID == modUnit.UnitID).First();
 
                         // Modify the record
-                        currentRecord.Description = modTaskType.Description;
+                        currentRecord.Description = modUnit.Description;
 
                         // Save changes
                         await _context.SaveChangesAsync();
 
-                        Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [MODIFY] TypeID: {currentRecord.TypeID} successful", Serilog.Events.LogEventLevel.Information);
+                        Logger.Msg<UnitsController>($"[{User.FindFirstValue("email")}] [MODIFY] UnitID: {currentRecord.UnitID} successful", Serilog.Events.LogEventLevel.Information);
 
                         // Return modified record as a DTO
-                        TaskTypeDTO response = new TaskTypeDTO(currentRecord);
+                        UnitDTO response = new UnitDTO(currentRecord);
                         return Ok(response);
                     }
                     catch (Exception ex)
                     {
                         // Local log entry. Database reconciliation issues are more serious so reported as Error
-                        Logger.Msg<TaskTypesController>($"[MODIFY] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+                        Logger.Msg<UnitsController>($"[MODIFY] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
 
                         // Return response to client
                         return StatusCode(500, new { errors = "Database update failed. Contact the administrator to resolve this issue." });
@@ -155,10 +151,10 @@ namespace TCStudentRecordManagement.Controllers
             {
                 return NotFound();
             }
-        } // End of ModifyTaskType
+        } // End of ModifyUnit
 
         /// <summary>
-        /// Deletes the TaskType record, provided that there are no FK dependencies
+        /// Deletes the Unit record, provided that there are no FK dependencies
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -166,27 +162,27 @@ namespace TCStudentRecordManagement.Controllers
         [Authorize(Policy = "SuperAdmin")]
         public async Task<ActionResult> Delete(int id)
         {
-            // Find existing TaskType record in DB
-            TaskType taskType = await _context.TaskTypes.FindAsync(id);
+            // Find existing Unit record in DB
+            Unit unit = await _context.Units.FindAsync(id);
 
-            if (taskType == null)
+            if (unit == null)
             {
-                Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [DELETE] TypeID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<UnitsController>($"[{User.FindFirstValue("email")}] [DELETE] UnitID: {id} not found", Serilog.Events.LogEventLevel.Debug);
                 return NotFound();
             }
 
             try
             {
-                _context.TaskTypes.Remove(taskType);
+                _context.Units.Remove(unit);
                 await _context.SaveChangesAsync();
 
-                Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [DELETE] TypeID: {id} success", Serilog.Events.LogEventLevel.Information);
-                return Ok(new TaskTypeDTO(taskType));
+                Logger.Msg<UnitsController>($"[{User.FindFirstValue("email")}] [DELETE] UnitID: {id} success", Serilog.Events.LogEventLevel.Information);
+                return Ok(new UnitDTO(unit));
             }
             catch (Exception ex)
             {
                 // Probably due to FK violation
-                Logger.Msg<TaskTypesController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+                Logger.Msg<UnitsController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
 
                 // Return response to client
                 return StatusCode(500, new { errors = "Database update failed. Perhaps there are students in this cohort?" });
@@ -194,9 +190,9 @@ namespace TCStudentRecordManagement.Controllers
 
         }
 
-        private bool TaskTypeExists(int id)
+        private bool UnitExists(int id)
         {
-            return _context.TaskTypes.Any(e => e.TypeID == id);
+            return _context.Units.Any(e => e.UnitID == id);
         }
     }
 }

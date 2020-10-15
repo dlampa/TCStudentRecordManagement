@@ -115,7 +115,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
             bool isUserStaff = userClaims.IsInRole("Staff") || userClaims.IsInRole("SuperAdmin");
 
             // Get the StudentID of the currrent user (or null)
-            int currentStudentID = _context.Users.Where(x => x.Email == userClaims.FindFirstValue("email")).Include(users => users.StudentData).FirstOrDefault()?.StudentData.StudentID ?? 0;
+            int currentStudentID = isUserStaff? 0 : _context.Users.Where(x => x.Email == userClaims.FindFirstValue("email")).Include(users => users.StudentData).FirstOrDefault()?.StudentData.StudentID ?? 0;
 
             // Apply defaults
             if (startDate == DateTime.MinValue) startDate = DateTime.Today.AddDays(-7);

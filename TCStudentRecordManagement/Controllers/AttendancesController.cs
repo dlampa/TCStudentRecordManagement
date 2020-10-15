@@ -55,8 +55,9 @@ namespace TCStudentRecordManagement.Controllers
 
                     // Apply all the criteria with supplied or default values from BLL
                     IQueryable<Attendance> dbRequest = _context.AttendanceRecords
-                        .Where(x => x.Date >= (DateTime)BLLResponseDic["StartDate"] && x.Date <= (DateTime)BLLResponseDic["EndDate"])
-                        .Where(x => x.StudentID == (int)BLLResponseDic["StudentID"]);
+                        .Where(x => x.Date >= (DateTime)BLLResponseDic["StartDate"] && x.Date <= (DateTime)BLLResponseDic["EndDate"]);
+
+                    if ((int)BLLResponseDic["StudentID"] != 0) dbRequest = dbRequest.Where(x => x.StudentID == (int)BLLResponseDic["StudentID"]);
 
                     // If specific type of attendance is sought (AttendanceStateID != 0) then apply criteria else return all
                     if ((int)BLLResponseDic["AttendanceStateID"] != 0) dbRequest = dbRequest.Where(x => x.AttendanceStateID == (int)BLLResponseDic["AttendanceStateID"]);
