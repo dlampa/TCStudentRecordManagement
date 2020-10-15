@@ -224,7 +224,7 @@ namespace TCStudentRecordManagement.Controllers
         [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> Delete(int id)
         {
-            // Find existing TaskType record in DB
+            // Find existing Task record in DB
             Models.Task task = await _context.Tasks.FindAsync(id);
 
             if (task == null)

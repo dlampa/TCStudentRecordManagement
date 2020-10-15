@@ -97,7 +97,17 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
         } // End of ModifyTaskBLL
 
-
+        /// <summary>
+        /// Business logic for retrieving Task records
+        /// </summary>
+        /// <param name="taskID"></param>
+        /// <param name="cohortID"></param>
+        /// <param name="typeID"></param>
+        /// <param name="unitID"></param>
+        /// <param name="startDate"></param>
+        /// <param name="endDate"></param>
+        /// <param name="userClaims"></param>
+        /// <returns></returns>
         internal object GetTaskBLL(int taskID, int cohortID, int typeID, int unitID, DateTime startDate, DateTime endDate, ClaimsPrincipal userClaims)
         {
             // Check if the current user is a staff member (or Super Admin)

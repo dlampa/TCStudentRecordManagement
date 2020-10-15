@@ -185,7 +185,7 @@ namespace TCStudentRecordManagement.Controllers
                 Logger.Msg<UnitsController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
 
                 // Return response to client
-                return StatusCode(500, new { errors = "Database update failed. Perhaps there are students in this cohort?" });
+                return StatusCode(500, new { errors = "Database update failed." });
             }
 
         }
