@@ -43,8 +43,9 @@ namespace TCStudentRecordManagement.Controllers
                 object authResponse = new
                 {
                     email = User.FindFirstValue("email"),
-                    fullname = User.FindFirstValue("name"),
+                    fullname = User.Identity.Name,
                     groupMembership = User.FindFirstValue(ClaimTypes.Role),
+                    tokenID = _context.Users.Where(x => x.Email == User.FindFirstValue("email")).First().ActiveToken,
                     cohortID = cohortID
                 };
 

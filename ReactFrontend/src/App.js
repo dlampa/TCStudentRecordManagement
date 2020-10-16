@@ -17,10 +17,10 @@ class App extends React.Component {
 
 
     this.state = {
-      currentUser: null
-    }
+      errors: []
+    };
   }
-  
+
   render() {
 
     return (
@@ -29,70 +29,63 @@ class App extends React.Component {
         <h2>Student Record Management System</h2>
         <GoogleLogin clientId="553228721119-dp1p9m24d2br2it12un57pep3gomtgp1.apps.googleusercontent.com"
           buttonText="Login using your UofA account"
-          onSuccess={this.registerUserInState}
-          onFailure={this.responseGoogle}
+          onSuccess={this.authUserWithAPI}
+          onFailure={this.authFailedHandler}
           isSignedIn={true}
           uxMode={'redirect'}
           cookiePolicy={'single_host_origin'} />
+      
+        {this.state.errors.map((error, index) => <div key={index}>{error}</div>)}
 
-
-        {(this.state.currentUser != null ? console.log(this.state.currentUser) : <div>No User data loaded</div>)}
-
+        
       </main>
     );
   }
-  
 
-  registerUserInState = (response) => {
-    
+
+  authUserWithAPI = async (response) => {
+
     // Take the authentication token received from Google and pass it to API target /auth
-    axios.get("https://localhost:5001/auth/logon", { headers: { 'Authorization': `Bearer ${response.tokenId}` } })
-      .then(response => {
-        console.log(response);
-        if (response.status === 200) {
-          console.log("works");
-        } else {
-          console.log("doesn't");
-        }
-      })
-      .catch(err => { console.log('error'); console.log(err.response) });
+    try {
+      const apiResponse = await axios.get("https://localhost:5001/auth/logon",
+        { headers: { 'Authorization': `Bearer ${response.tokenId}` } });
+
+      // Handle the expected response from the API
+      if (apiResponse.status === 200 & response.tokenId === apiResponse.data.tokenID) {
+        apiResponse.data.tokenID = response.tokenId;
+        apiResponse.data.tokenID = response.tokenId;
+        this.props.dispatch(loginUser(apiResponse));
+
+        // Redirect user to the home page
+        this.props.history.push(process.env.PUBLIC_URL + "/timesheets/");
+      }
+    }
+    catch (err) {
+      console.log(err.response.data.status);
+      const errList = this.state.errors;
+      errList.push("Unauthorized user login. If you believe this has happened in error, please contact our staff.");
       
-      this.props.dispatch(loginUser(response));
-      //this.props.history.push(process.env.PUBLIC_URL + "/timesheets/");
-    
-      // Check response. If valid, receive user credential level and compare to what was received from Google
-    
+      this.setState({ errors: errList });
+    }
+
+
+    //  .catch(err => { console.log('error'); console.log(err.response) });
+    //this.props.dispatch(loginUser(response));
+
+    // Check response. If valid, receive user credential level and compare to what was received from Google
+
     // Take the authentication token received from Google and store in Redux store
 
     // If API authentication has failed, return the user to the login screen.
-    
-    
-    
 
   }
 
-  
-  responseGoogle = (response) => {   
-    this.setState({ currentUser: response });
-    this.getApiData();
+  authFailedHandler = (response) => {
+    console.log("Failed" + response);
   }
-  
-  getApiData = () => {
-    //   const requestConfig = {
-    //     method: 'put',
-    //     url: 'https://localhost:5001/cohorts/list',
-    //     headers: {
-    //        'Authorization': `Bearer ${token.tokenId}`
-    //     }
-    //   };
-    
-    //   axios(requestConfig)
-    //     .then(apiresponse => console.log(apiresponse))
-    //     .catch(err => console.log(err));
-    // }
-  }
+
 }
 
 
 
-export default withRouter(connect((state) => { return { state: state }})(App));
+export default withRouter(connect((state) => { return { state: state } })(App));
