@@ -19,7 +19,7 @@ namespace TCStudentRecordManagement.Controllers
     [Authorize(Policy = "StaffMember")]
     [Route("/cohorts")]
     [ApiController]
-    public partial class CohortsController : ControllerBase
+    public class CohortsController : ControllerBase
     {
         private readonly DataContext _context;
 
