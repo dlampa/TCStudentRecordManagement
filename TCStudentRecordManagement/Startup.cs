@@ -15,16 +15,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Logging;
 using TCStudentRecordManagement.Auth;
 using TCStudentRecordManagement.Auth.Authorization;
 using TCStudentRecordManagement.Models;
+using TCStudentRecordManagement.Utils;
 
 namespace TCStudentRecordManagement
 {
     public class Startup
     {
         readonly string CORSAllowedOrigins = "_CORSAllowedOrigins";
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -98,8 +101,12 @@ namespace TCStudentRecordManagement
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime applife)
         {
+            // Application shutdown handling
+            // Ref: https://thinkrethink.net/2017/03/09/application-shutdown-in-asp-net-core/
+            applife.ApplicationStopping.Register(new ShutdownHandler().ShutdownCleanup);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -122,6 +129,7 @@ namespace TCStudentRecordManagement
             });
         }
     }
+
 
 
 

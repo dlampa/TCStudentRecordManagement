@@ -73,8 +73,10 @@ namespace TCStudentRecordManagement.Auth
                 {
                     // Get DB record associated with the Email, if it exists.
                     
-                    User userData = _DataContext.Users.Where(x => x.Email == payload.Email).FirstOrDefault();
-                    userData.StaffData = _DataContext.Staff.Where(x => x.UserID == userData.UserID).FirstOrDefault();
+                    //User userData = _DataContext.Users.Where(x => x.Email == payload.Email).FirstOrDefault();
+                    // userData.StaffData = _DataContext.Staff.Where(x => x.UserID == userData.UserID).FirstOrDefault();
+
+                    User userData = _DataContext.Users.Where(x => x.Email == payload.Email).Include(user => user.StaffData).FirstOrDefault();
 
                     if (userData != null)
                     {
@@ -86,7 +88,15 @@ namespace TCStudentRecordManagement.Auth
                         bool userIsStaff = userData.StaffData != null;
                         bool userIsSuperUser = userIsStaff ? userData.StaffData.SuperUser : false;
                         claims.Add(new Claim(ClaimTypes.Role, (userIsSuperUser ? "SuperAdmin" : userIsStaff ? "Staff" : "Student")));
-                        Logger.Msg<GoogleTokenValidator>($"[LOGIN] SUCCESS User {payload.Email} {(userIsSuperUser ? "(Super)" : userIsStaff ? "(Staff)" : string.Empty)}");
+
+                        // Compare the current id token in database to the new one. If they differ, store the new token and create a log entry
+                        if (userData.ActiveToken != securityToken)
+                        {
+                            userData.ActiveToken = securityToken;
+                            _DataContext.SaveChangesAsync();
+
+                            Logger.Msg<GoogleTokenValidator>($"[LOGIN] SUCCESS User {payload.Email} {(userIsSuperUser ? "(Super)" : userIsStaff ? "(Staff)" : string.Empty)}");
+                        }
                     }
                     else
                     {

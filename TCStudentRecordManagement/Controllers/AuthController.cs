@@ -31,12 +31,10 @@ namespace TCStudentRecordManagement.Controllers
             if (User.Identity.IsAuthenticated)
             {
                 // Check if the user is a member of any of the elevated rights groups
-                bool isUserStaff = User.IsInRole("Staff");
-                bool isUserAdmin = User.IsInRole("SuperAdmin");
                 int cohortID = 0;
 
                 // If the user is a student, get their cohortID
-                if (!(isUserStaff || isUserAdmin)) {
+                if (!(User.IsInRole("Staff") || User.IsInRole("SuperAdmin"))) {
                     cohortID = _context.Users.Where(x => x.Email == User.FindFirstValue("email")).Include(user => user.StudentData).FirstOrDefault()?.StudentData.CohortID ?? 0;
                 }
 
@@ -45,8 +43,8 @@ namespace TCStudentRecordManagement.Controllers
                 object authResponse = new
                 {
                     email = User.FindFirstValue("email"),
-                    fullname = User.FindFirstValue("fullname"),
-                    groupMembership = isUserAdmin ? "SuperAdmin" : isUserStaff ? "Staff" : "Student",
+                    fullname = User.FindFirstValue("name"),
+                    groupMembership = User.FindFirstValue(ClaimTypes.Role),
                     cohortID = cohortID
                 };
 

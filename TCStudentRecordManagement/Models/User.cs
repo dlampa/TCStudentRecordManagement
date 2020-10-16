@@ -30,6 +30,9 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public bool Active { get; set; }
 
+        [Column("ActiveToken", TypeName = "varchar(2048)")]
+        public string ActiveToken { get; set; }
+
         [InverseProperty(nameof(Student.UserData))]
         public virtual Student StudentData { get; set; }
 
