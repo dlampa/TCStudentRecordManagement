@@ -21,7 +21,7 @@ Data structure
 const TCDataReducer = (state = [], action) => {
     switch (action.type) {
         case "LOGIN_USER":
-            const returnState = {
+            const returnLoginState = {
                 auth: {
                     fullName: action.payload.data.fullname,
                     email: action.payload.data.email,
@@ -30,9 +30,18 @@ const TCDataReducer = (state = [], action) => {
                     imageURL: action.payload.data.imageURL
                 }
             }
-            return returnState;
+            return returnLoginState;
         case "LOGOFF_USER":
-            break;
+            const returnLogoffState = {
+                auth: {
+                    fullName: null,
+                    email: null,
+                    rights: null,
+                    tokenID: null,
+                    imageURL: null
+                }
+            }
+            return returnLogoffState;
         default:
             return state;
     }

@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 
+// CSS
+import './css/reset.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './css/Typography.css';
 
 // Redux setup
 import { createStore } from 'redux';
@@ -23,7 +26,7 @@ const Root = (store) => (
     <Router>
       <Route path={process.env.PUBLIC_URL + "/"} exact component={App} />
       <Switch>
-        <Route path={process.env.PUBLIC_URL + "/timesheets"} component={Timesheets} />
+        <Route path={process.env.PUBLIC_URL + "/timesheets/"} component={Timesheets} />
         {/*
         <Route path={process.env.PUBLIC_URL + "/profile/:userid"} component={UserProfilePage} />
         <Route path={process.env.PUBLIC_URL + "/timeline/"} component={Timesheets} />

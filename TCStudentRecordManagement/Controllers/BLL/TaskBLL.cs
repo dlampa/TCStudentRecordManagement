@@ -121,7 +121,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
             if (endDate == DateTime.MinValue) endDate = DateTime.Today.AddDays(7);
 
             // Do not allow students to see future assignments
-            if (endDate > DateTime.Today.AddDays(1) && !isUserStaff) endDate = DateTime.Today.AddDays(1);
+            if (startDate > DateTime.Today && !isUserStaff) startDate = DateTime.Today;
             if (cohortID == 0) cohortID = currentCohortID;
 
             // Create a new APIException object to store possible exceptions as checks are performed. 
