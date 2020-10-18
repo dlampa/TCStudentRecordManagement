@@ -100,6 +100,8 @@ namespace TCStudentRecordManagement.Controllers.BLL
             // Get the StudentID of the currrent user (or 0)
             int currentStudentID = isUserStaff ? 0 : _context.Users.Where(x => x.Email == userClaims.FindFirstValue("email")).Include(users => users.StudentData).FirstOrDefault()?.StudentData.StudentID ?? 0;
 
+            if (timesheetRecord.StudentID == 0 && !isUserStaff) timesheetRecord.StudentID = currentStudentID;
+
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
 
@@ -109,7 +111,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
                 { "StudentID cannot differ from the authenticated user", !(timesheetRecord.StudentID == currentStudentID || isUserStaff)  },
                 { "Student account matching the StudentID must be active", !(_context.Students.Where(x => x.StudentID == timesheetRecord.StudentID).Include(student => student.UserData).FirstOrDefault().UserData.Active || isUserStaff) },
                 { "Specified AssignmentID does not exist", !_context.Tasks.Any(x => x.TaskID == timesheetRecord.AssignmentID) },
-                { "Specified date is older than 7 days", !(((DateTime.Today - timesheetRecord.Date).Days > 7) || isUserStaff) },
+                { "Specified date is older than 7 days", ((DateTime.Today - timesheetRecord.Date).Days > 7) && !isUserStaff },
                 { "Specified date cannot be in the future", !(timesheetRecord.Date <= DateTime.Today) },
                 { "TimeAllocation has to be a positive number, or zero", !(timesheetRecord.TimeAllocation >= 0) },
                 { "TimeAllocation has to be less than or equal to 18h", !(timesheetRecord.TimeAllocation <= 18) },

@@ -27,7 +27,8 @@ const TCDataReducer = (state = [], action) => {
                     email: action.payload.data.email,
                     rights: action.payload.data.groupMembership,
                     tokenID: action.payload.data.tokenID,
-                    imageURL: action.payload.data.imageURL
+                    imageURL: action.payload.data.imageURL,
+                    cohortID: action.payload.data.cohortID
                 }
             }
             return returnLoginState;

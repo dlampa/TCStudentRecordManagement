@@ -19,6 +19,7 @@
     },
     "TCStudentRecordManagement": {
       "commandName": "Project",
+      "commandLineArgs": "-d",
       "launchUrl": "weatherforecast",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

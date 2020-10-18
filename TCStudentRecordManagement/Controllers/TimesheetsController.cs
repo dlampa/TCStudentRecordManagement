@@ -84,7 +84,6 @@ namespace TCStudentRecordManagement.Controllers
         /// <param name="timesheet"></param>
         /// <returns></returns>
         [HttpPut("add")]
-        [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> AddTimesheetRecord(TimesheetDTO timesheetRecord)
         {
 
@@ -140,7 +139,6 @@ namespace TCStudentRecordManagement.Controllers
         /// <param name="timesheetRecord"></param>
         /// <returns></returns>
         [HttpPut("modify")]
-        [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> ModifyTimesheetRecord([FromBody] TimesheetDTO timesheet)
         {
             if (TimesheetRecordExists(timesheet.RecordID))

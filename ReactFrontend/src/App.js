@@ -11,40 +11,41 @@ import { loginUser } from './actions';
 import './App.css';
 
 
-
 class App extends React.Component {
   constructor(props) {
     super(props);
 
-
     this.state = {
+      showLogin: false,
+      loggedIn: false,
+      auth: this.props.auth,
       errors: []
     };
   }
 
   render() {
-
     return (
       <main className="App">
-        <h1>Welcome to TECHCareers</h1>
-        <h2>Student Record Management System</h2>
-        <div>
-        <GoogleLogin clientId="553228721119-dp1p9m24d2br2it12un57pep3gomtgp1.apps.googleusercontent.com"
-          buttonText="Login using your UofA account"
-          onSuccess={this.authUserWithAPI}
-          onFailure={this.authFailedHandler}
-          isSignedIn={true}
-          uxMode={'redirect'}
-          cookiePolicy={'single_host_origin'} />
-        </div>
-        
-        {this.state.errors.map((error, index) => <Alert color="danger" key={index}>{error}</Alert>)}
-
+        {!this.state.loggedIn ?
+          <>
+            <div>
+              <h1>Welcome to TECHCareers</h1>
+              <h2>Student Record Management System</h2>
+              <GoogleLogin clientId="553228721119-dp1p9m24d2br2it12un57pep3gomtgp1.apps.googleusercontent.com"
+                buttonText="Login using your UofA account"
+                onSuccess={this.authUserWithAPI}
+                onFailure={this.authFailedHandler}
+                isSignedIn={true}
+                uxMode={'redirect'}
+                cookiePolicy={'single_host_origin'} />
+              {this.state.errors.map((error, index) => <Alert color="danger" key={index}>{error}</Alert>)}
+            </div>
+          </> : <Redirect to="/timesheets/" />}
 
       </main>
     );
-  }
 
+  }
 
   authUserWithAPI = async (response) => {
     // Take the authentication token received from Google and pass it to API target /auth
@@ -54,16 +55,17 @@ class App extends React.Component {
 
       // Check response. If valid, receive user credential level and compare to what was received from Google
       if (apiResponse.status === 200 & response.tokenId === apiResponse.data.tokenID) {
-
+        console.log(response);
         // Attach additional information received from google to the API response
         apiResponse.data.tokenID = response.tokenId;
-        apiResponse.data.tokenID = response.tokenId;
+        apiResponse.data.cohortID = response.cohortId;
 
         // Take the authentication token received from Google and store in Redux store
-        this.props.dispatch(loginUser(apiResponse));
-
+        await this.props.dispatch(loginUser(apiResponse));
+        this.setState({ loggedIn: true });
         // Redirect user to the home page
         this.props.history.push(process.env.PUBLIC_URL + "/timesheets/");
+
       }
     }
     catch (err) {
@@ -72,7 +74,7 @@ class App extends React.Component {
       console.log(err.response);
       const errList = this.state.errors;
       //this.props.dispatch(loginUser(null));
-      errList.push(`${err?.response?.data?.status??""}Unauthorized user login. If you believe this has happened in error, please contact our staff.`);
+      errList.push(`${err?.response?.data?.status ?? ""}Unauthorized user login. If you believe this has happened in error, please contact our staff.`);
 
       this.setState({ errors: errList });
     }
@@ -94,4 +96,9 @@ class App extends React.Component {
 
 
 
-export default withRouter(connect((state) => { return { state: state } })(App));
+export default withRouter(
+  connect(
+    (state) => {
+      return { auth: state.auth }
+    }
+  )(App));

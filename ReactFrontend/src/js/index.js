@@ -3,7 +3,7 @@
 import axios from 'axios';
 
 
-const get = async (apiURL, axConfig, tokenID) => {
+const ax = async (apiURL, axConfig, tokenID) => {
     let response;
     let config = {
         method: 'get',
@@ -21,4 +21,4 @@ const get = async (apiURL, axConfig, tokenID) => {
 
 }
 
-export { get };
+export { ax };
