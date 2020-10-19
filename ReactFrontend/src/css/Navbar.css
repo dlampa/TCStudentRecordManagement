@@ -1,0 +1,15 @@
+#navbarIconNoProfilePic {
+    font-size: large;
+    border: 1px solid black;
+    padding: 5px;
+    border-radius: 100%;
+
+}
+
+#navbarIcon {
+    padding: 2px;
+    border-radius: 100%;
+    width: 40px;
+    height: 40px;
+
+}

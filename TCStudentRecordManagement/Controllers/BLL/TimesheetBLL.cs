@@ -104,7 +104,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
-
+            
             Dictionary<string, bool> exceptionTests = new Dictionary<string, bool>()
             {
                 { "Specified StudentID does not exist", !_context.Students.Any(x => x.StudentID == timesheetRecord.StudentID) },

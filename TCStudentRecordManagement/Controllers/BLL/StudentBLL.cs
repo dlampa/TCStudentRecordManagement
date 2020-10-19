@@ -8,7 +8,7 @@ using TCStudentRecordManagement.Models;
 
 namespace TCStudentRecordManagement.Controllers.BLL
 {
-    public class StudentBLL
+    internal class StudentBLL
     {
         private readonly DataContext _context;
 
@@ -17,7 +17,49 @@ namespace TCStudentRecordManagement.Controllers.BLL
             _context = context;
         }
 
-        public object AddStudent(string firstname, string lastname, string email, bool active, int cohortID, string bearTracksID, bool userIsSuperAdmin)
+        /// <summary>
+        /// Business logic for listing Student records
+        /// </summary>
+        /// <param name="cohortID"></param>
+        /// <returns></returns>
+        internal object StudentDetailBLL(int cohortID)
+        {
+            // Create a new APIException object to store possible exceptions as checks are performed. 
+            APIException exceptionList = new APIException();
+
+            Dictionary<string, bool> exceptionTests = new Dictionary<string, bool>()
+            {
+                { "Specified CohortID does not exist", !(_context.Cohorts.Any(x => x.CohortID == cohortID) || cohortID == 0) },
+                { "Specified cohort is inactive.", cohortID != 0 && !_context.Cohorts.Any(x => x.CohortID == cohortID && DateTime.Now >= x.StartDate && DateTime.Now <= x.EndDate) }
+            };
+
+            foreach (KeyValuePair<string, bool> kvp in exceptionTests)
+            {
+                if (kvp.Value) exceptionList.AddExMessage(kvp.Key);
+            }
+
+            if (!exceptionList.HasExceptions)
+            {
+                return cohortID;
+            }
+            else
+            {
+                return exceptionList;
+            }
+        } // End of StudentDetailBLL
+
+        /// <summary>
+        /// Business logic for adding Student records
+        /// </summary>
+        /// <param name="firstname"></param>
+        /// <param name="lastname"></param>
+        /// <param name="email"></param>
+        /// <param name="active"></param>
+        /// <param name="cohortID"></param>
+        /// <param name="bearTracksID"></param>
+        /// <param name="userIsSuperAdmin"></param>
+        /// <returns></returns>
+        internal object AddStudent(string firstname, string lastname, string email, bool active, int cohortID, string bearTracksID, bool userIsSuperAdmin)
         {
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
@@ -69,7 +111,13 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
         } // End of AddStudent
 
-        public object ModifyStudent(StudentModDTO student, bool userIsSuperAdmin)
+        /// <summary>
+        /// Business logic for modifying Student records
+        /// </summary>
+        /// <param name="student"></param>
+        /// <param name="userIsSuperAdmin"></param>
+        /// <returns></returns>
+        internal object ModifyStudent(StudentModDTO student, bool userIsSuperAdmin)
         {
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
@@ -111,7 +159,5 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
         } // End of ModifyStudent
 
-
-
-    }
+    } // End of StudentBLL
 }

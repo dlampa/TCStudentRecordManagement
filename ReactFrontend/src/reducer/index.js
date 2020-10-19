@@ -34,13 +34,7 @@ const TCDataReducer = (state = [], action) => {
             return returnLoginState;
         case "LOGOFF_USER":
             const returnLogoffState = {
-                auth: {
-                    fullName: null,
-                    email: null,
-                    rights: null,
-                    tokenID: null,
-                    imageURL: null
-                }
+                auth: null
             }
             return returnLogoffState;
         default:

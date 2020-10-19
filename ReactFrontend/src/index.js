@@ -12,11 +12,13 @@ import { Provider } from 'react-redux';
 import TCDataReducer from './reducer';
 
 // React-Router setup
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 
 // App components
 import App from './App';
 import Timesheets from './components/Timesheets';
+import Logout from './components/Logout';
+import Students from './components/Students';
 
 
 const store = createStore(TCDataReducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()); // Redux devtools
@@ -24,13 +26,15 @@ const store = createStore(TCDataReducer, window.__REDUX_DEVTOOLS_EXTENSION__ && 
 const Root = (store) => (
   <Provider store={store.store}>
     <Router>
-      <Route path={process.env.PUBLIC_URL + "/"} exact component={App} />
       <Switch>
-        <Route path={process.env.PUBLIC_URL + "/timesheets/"} component={Timesheets} />
+      <Route path={process.env.PUBLIC_URL + "/"} exact component={App} />
+        <Route path={process.env.PUBLIC_URL + "/timesheets/"} exact component={Timesheets} />
+        <Route path={process.env.PUBLIC_URL + "/students/"} exact component={Students} />
         {/*
-        <Route path={process.env.PUBLIC_URL + "/profile/:userid"} component={UserProfilePage} />
         <Route path={process.env.PUBLIC_URL + "/timeline/"} component={Timesheets} />
         <Route path={process.env.PUBLIC_URL + "/search/:searchTerm"} component={SearchPage} /> */}
+      <Route path={process.env.PUBLIC_URL + "/logout/"} exact component={Logout} />
+      <Route component={() => (<Redirect to="/"/>) } />
       </Switch>
     </Router>
   </Provider>

@@ -16,35 +16,37 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      showLogin: false,
       loggedIn: false,
-      auth: this.props.auth,
       errors: []
     };
   }
 
   render() {
-    return (
-      <main className="App">
-        {!this.state.loggedIn ?
-          <>
-            <div>
-              <h1>Welcome to TECHCareers</h1>
-              <h2>Student Record Management System</h2>
-              <GoogleLogin clientId="553228721119-dp1p9m24d2br2it12un57pep3gomtgp1.apps.googleusercontent.com"
-                buttonText="Login using your UofA account"
-                onSuccess={this.authUserWithAPI}
-                onFailure={this.authFailedHandler}
-                isSignedIn={true}
-                uxMode={'redirect'}
-                cookiePolicy={'single_host_origin'} />
-              {this.state.errors.map((error, index) => <Alert color="danger" key={index}>{error}</Alert>)}
-            </div>
-          </> : <Redirect to="/timesheets/" />}
-
-      </main>
-    );
-
+    if (!this.props.loggedIn) {
+      return (
+        <main className="App">
+          <div>
+            <h1>Welcome to TECHCareers</h1>
+            <h2>Student Record Management System</h2>
+            <GoogleLogin clientId="553228721119-dp1p9m24d2br2it12un57pep3gomtgp1.apps.googleusercontent.com"
+              buttonText="Login using your UofA account"
+              onSuccess={this.authUserWithAPI}
+              onFailure={this.authFailedHandler}
+              isSignedIn={true}
+              uxMode={'redirect'}
+              cookiePolicy={'single_host_origin'} />
+            {this.state.errors.map((error, index) => <Alert color="danger" key={index}>{error}</Alert>)}
+          </div>
+        </main>
+      );
+    } else {
+      return (
+        <>
+          <p>Please wait...</p>
+          {this.props.auth.rights == "Student" ? <Redirect to="/timesheets/" /> : <Redirect to="/students/" />}
+        </>
+      );
+    }
   }
 
   authUserWithAPI = async (response) => {
@@ -55,41 +57,41 @@ class App extends React.Component {
 
       // Check response. If valid, receive user credential level and compare to what was received from Google
       if (apiResponse.status === 200 & response.tokenId === apiResponse.data.tokenID) {
-        console.log(response);
+
         // Attach additional information received from google to the API response
         apiResponse.data.tokenID = response.tokenId;
         apiResponse.data.cohortID = response.cohortId;
 
         // Take the authentication token received from Google and store in Redux store
         await this.props.dispatch(loginUser(apiResponse));
-        this.setState({ loggedIn: true });
-        // Redirect user to the home page
-        this.props.history.push(process.env.PUBLIC_URL + "/timesheets/");
 
+        // Redirect user to the home page
+        //this.props.history.push(process.env.PUBLIC_URL + "/timesheets/");
       }
     }
     catch (err) {
       // If API authentication has failed, display the error message to the user
-      //console.log(err.response.data.status);
-      console.log(err.response);
+
+
       const errList = this.state.errors;
       //this.props.dispatch(loginUser(null));
       errList.push(`${err?.response?.data?.status ?? ""}Unauthorized user login. If you believe this has happened in error, please contact our staff.`);
-
       this.setState({ errors: errList });
+
+      this.setState({ loggedIn: false });
     }
 
 
     //  .catch(err => { console.log('error'); console.log(err.response) });
     //this.props.dispatch(loginUser(response));
 
-
-
-
   }
 
   authFailedHandler = (response) => {
     console.log("Failed" + response);
+    const errList = this.state.errors;
+    errList.push(response);
+    this.setState({ errors: errList })
   }
 
 }
@@ -99,6 +101,9 @@ class App extends React.Component {
 export default withRouter(
   connect(
     (state) => {
-      return { auth: state.auth }
+      return {
+        loggedIn: (state.auth?.tokenID !== undefined && state.auth.tokenID !== null),
+        auth: state.auth
+      }
     }
   )(App));

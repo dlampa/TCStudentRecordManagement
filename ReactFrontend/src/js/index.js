@@ -4,7 +4,7 @@ import axios from 'axios';
 
 
 const ax = async (apiURL, axConfig, tokenID) => {
-    let response;
+
     let config = {
         method: 'get',
         url: apiURL,
@@ -13,11 +13,13 @@ const ax = async (apiURL, axConfig, tokenID) => {
     };
 
     try {
-        response = await axios(config);
+        const response = await axios(config);
+        return response;
     } catch (error) {
-        response = error;
+        const err = { errResponse: error?.response?.data, errRequest: error?.request?.message || error?.request?.statusText, message: error?.message };
+        console.log(err);
+        return err;
     }
-    return response;
 
 }
 

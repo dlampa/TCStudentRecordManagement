@@ -7,16 +7,16 @@ using TCStudentRecordManagement.Models.DTO;
 
 namespace TCStudentRecordManagement.Controllers.BLL
 {
-    public class CohortBLL
+    internal class CohortBLL
     {
         private readonly DataContext _context;
 
-        public CohortBLL(DataContext context)
+        internal CohortBLL(DataContext context)
         {
             _context = context;
         }
 
-        public object AddCohort(string name, DateTime startDate, DateTime endDate)
+        internal object AddCohort(string name, DateTime startDate, DateTime endDate)
         {
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
@@ -56,7 +56,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
         } // End of AddCohort
 
-        public object ModifyCohort(CohortDTO cohort)
+        internal object ModifyCohort(CohortDTO cohort)
         {
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
@@ -106,7 +106,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
         } // End of ModifyCohort
 
-        public bool CohortExists(int id)
+        private bool CohortExists(int id)
         {
             // Returns true if cohort exists with a specified CohortID
             return _context.Cohorts.Any(x => x.CohortID == id);

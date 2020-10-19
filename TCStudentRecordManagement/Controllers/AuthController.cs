@@ -46,6 +46,7 @@ namespace TCStudentRecordManagement.Controllers
                     fullname = User.Identity.Name,
                     groupMembership = User.FindFirstValue(ClaimTypes.Role),
                     tokenID = _context.Users.Where(x => x.Email == User.FindFirstValue("email")).First().ActiveToken,
+                    imageURL = User.FindFirstValue("website"),
                     cohortID = cohortID
                 };
 

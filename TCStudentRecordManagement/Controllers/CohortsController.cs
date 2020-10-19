@@ -42,6 +42,20 @@ namespace TCStudentRecordManagement.Controllers
             return result;
         }
 
+        // GET: All Active Cohorts [NO BLL] [Return DTO]
+        [HttpGet("listactive")]
+        public async Task<ActionResult<IEnumerable<CohortDTO>>> ListActive()
+        {
+            // Convert Cohort to CohortDTO
+            List<Cohort> cohortData = await _context.Cohorts.Where(x => DateTime.Now >= x.StartDate && DateTime.Now <= x.EndDate).ToListAsync();
+            List<CohortDTO> result = new List<CohortDTO>();
+            cohortData.ForEach(x => result.Add(new CohortDTO(x)));
+
+            // Log to debug log
+            Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [LIST] Active", Serilog.Events.LogEventLevel.Debug);
+            return result;
+        }
+
         // GET: Cohort by CohortID [NO BLL] [Return DTO]
         [HttpGet("get")]
         public async Task<ActionResult<CohortDTO>> Get(int id)

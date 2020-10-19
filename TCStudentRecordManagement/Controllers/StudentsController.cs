@@ -12,6 +12,7 @@ using TCStudentRecordManagement.Controllers.Exceptions;
 using TCStudentRecordManagement.Models.DTO;
 using TCStudentRecordManagement.Controllers.BLL;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Security.Claims;
 
 namespace TCStudentRecordManagement.Controllers
 {
@@ -39,23 +40,58 @@ namespace TCStudentRecordManagement.Controllers
             // Log to debug log
             Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [LIST]", Serilog.Events.LogEventLevel.Debug);
             return result;
-        }
-        
-        // GET: All Students with Cohort and User detail [NO BLL] [Return DTO]
-        [HttpGet("details")]
-        public async Task<ActionResult<IEnumerable<StudentDetailDTO>>> Details()
-        {
-            // Convert Student to StudentDetailDTO
-            List<Student> studentData = await _context.Students.ToListAsync();
-            studentData.ForEach(x => x.CohortMember = _context.Cohorts.Where(y => y.CohortID == x.CohortID).FirstOrDefault());
-            studentData.ForEach(x => x.UserData = _context.Users.Where(y => y.UserID == x.UserID).FirstOrDefault());
-            List<StudentDetailDTO> result = new List<StudentDetailDTO>();
-            studentData.ForEach(x => result.Add(new StudentDetailDTO(x)));
 
-            // Log to debug log
-            Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DETAILS]", Serilog.Events.LogEventLevel.Debug);
-            return result;
-        }
+        } // End of List
+
+        /// <summary>
+        /// Gets detailed Student records, with optional cohort filter
+        /// </summary>
+        /// <param name="cohortID"></param>
+        /// <returns></returns>
+        [HttpGet("details")]
+        public async Task<ActionResult<IEnumerable<StudentDetailDTO>>> Details(int cohortID)
+        {
+            // Call BLL method with all the parameters
+            object BLLResponse = new StudentBLL(_context).StudentDetailBLL(cohortID: cohortID);
+
+            // Get the base class for the response
+            // Ref: https://docs.microsoft.com/en-us/dotnet/api/system.type.basetype?view=netcore-3.1
+            if (BLLResponse.GetType().BaseType == typeof(Exception))
+            {
+                // Create log entries for Debug log
+                ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<CohortsController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
+
+                // Return response from API
+                return BadRequest(new { errors = ((APIException)BLLResponse).Exceptions.Select(x => x.Message).ToArray() });
+            }
+            else
+            {
+                try
+                {
+                    int BLLCohortID = (int)BLLResponse;
+
+                    // Retrieve data
+                    List<Student> studentData = await _context.Students.Where(x => x.CohortID == BLLCohortID).Include(student => student.CohortMember).Include(student => student.UserData).ToListAsync();
+                    
+                    // Convert Student to StudentDetailDTO
+                    List<StudentDetailDTO> result = new List<StudentDetailDTO>();
+                    studentData.ForEach(x => result.Add(new StudentDetailDTO(x)));
+
+                    // Log to debug log
+                    Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [DETAILS]", Serilog.Events.LogEventLevel.Debug);
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    // Local log entry. Database reconciliation issues are more serious so reported as Error
+                    Logger.Msg<StudentsController>($"[DETAILS] Database read error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+
+                    // Return response to client
+                    return StatusCode(500, new { errors = "Database read failed. Contact the administrator to resolve this issue." });
+                }
+            }
+
+        } // End of Details
 
         // GET: Specific Student based on StudentID [NO BLL] [Return DTO]
         [HttpGet("get")]

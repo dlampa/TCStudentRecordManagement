@@ -1,9 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { DateTime, Interval } from 'luxon';
-import { Input, FormGroup, Label, Button, InputGroup, InputGroupAddon, FormFeedback } from 'reactstrap';
+import { DateTime, Interval, Duration } from 'luxon';
+import { Input, FormGroup, Label, Button, InputGroup, InputGroupAddon, FormFeedback, Alert } from 'reactstrap';
 import TimesheetTable from './TimesheetTable';
+import AppNavbar from './Navbar';
 
 import { ax } from '../js';
 
@@ -18,6 +19,7 @@ class Timesheets extends React.Component {
             currentDate: DateTime.local().toISODate(),
             newTask: { duration: 0, durationInvalid: false, startTime: "00:00", endTime: "00:00" },
             timesheetModifiedButNotSaved: false,
+            status: null,
             timesheetData: null,
             taskData: null
         };
@@ -66,7 +68,11 @@ class Timesheets extends React.Component {
         }
     }
 
-    moveDate = (interval) => this.setState({ currentDate: DateTime.fromISO(this.state.currentDate).plus({ days: interval }).toISODate() });
+    moveDate = (interval) => {
+        if (this.state.currentDate !== DateTime.local.toISODate) {
+            this.setState({ currentDate: DateTime.fromISO(this.state.currentDate).plus({ days: interval }).toISODate() });
+        }
+    }
 
     calcDateDiff = (newTask) => {
         if (newTask !== undefined) {
@@ -82,7 +88,7 @@ class Timesheets extends React.Component {
                 newTask.duration = (Math.round(newTask.duration * 4) / 4).toFixed(2);
                 newTask.durationInvalid = !(newTask.duration > 0 && newTask.duration <= 18);
             }
-            
+
             // Flag set if any one of the validity conditions is satisfied
             newTask.invalidSub = newTask.startTimeInvalid || newTask.endTimeInvalid || newTask.durationInvalid;
 
@@ -136,14 +142,14 @@ class Timesheets extends React.Component {
                 }
             }, this.props.auth.tokenID);
 
-            console.log(this.state.currentDate);
+            console.log(response);
 
-            if (response?.data !== undefined) {
+            if (response.status === 200) {
+                console.log("here");
                 await this.retrieveTasks();
-                this.setState({ status: "" });
+                await this.setState({ status: [] });
             } else {
-
-                this.setState({ status: response?.data });
+                await this.setState({ status: response?.errResponse?.errors || response?.errResponse?.message });
             }
 
         }
@@ -160,8 +166,9 @@ class Timesheets extends React.Component {
 
             if (response?.data !== undefined) {
                 await this.setState({ taskData: response.data });
+                await this.setState({ status: [] });
             } else {
-                console.log("error?");
+                await this.setState({ status: response?.errResponse?.errors || response?.errResponse?.message });
             }
         }
     }
@@ -176,21 +183,42 @@ class Timesheets extends React.Component {
             }, this.props.auth.tokenID);
             if (response?.data !== undefined) {
                 await this.setState({ timesheetData: response.data });
+                await this.setState({ status: [] });
             } else {
-                console.log("error");
+                await this.setState({ status: response?.errResponse?.errors || response?.errResponse?.message });
             }
         }
     }
 
+    deleteTimesheetRecord = async () => {
+        if (this.props?.auth !== undefined) {
+            const response = await ax(process.env.REACT_APP_APIURL_TIMESHEETS_DELETE, {
+                method: 'delete',
+                params: {
+                    id: this.state.timesheetID
+                }
+            }, this.props.auth.tokenID);
+            if (response?.data !== undefined) {
+                this.setState({ APIMessage: response.data });
+                await this.setState({ status: [] });
+            } else {
+                await this.setState({ status: response?.errResponse?.errors || response?.errResponse?.message });
+            }
+        }
+    }
+
+
     tableFunctions = async (callerID, row) => {
-        let newTask = this.state.newTask;
+        const newTask = this.state.newTask;
         switch (callerID) {
             case ("rowEdit"):
                 newTask.taskID = row.assignmentID;
-                this.setState({ newTask });
+                await this.setState({ newTask });
                 break;
             case ("rowDelete"):
-                console.log("delete " + row);
+                await this.setState({ timesheetID: row.recordID });
+                await this.deleteTimesheetRecord();
+                this.retrieveTimesheets();
                 break;
             default:
                 break;
@@ -205,9 +233,13 @@ class Timesheets extends React.Component {
         }
 
         return (
+            <main>
+            <header>
+                <AppNavbar mobile={this.state.windowState === "mobile"} />
+            </header>
             <article id="">
                 <h2 className="titleDate">
-                    Timesheet for {this.state.currentDate.toLocaleString(DateTime.DATE_MED)}
+                    Timesheet for {DateTime.fromISO(this.state.currentDate).toFormat("cccc, LLL dd yyyy")}
                 </h2>
 
                 {/* 
@@ -215,15 +247,15 @@ class Timesheets extends React.Component {
                     Ref: https://upmostly.com/tutorials/pass-a-parameter-through-onclick-in-react 
                 
                 */}
-                <FormGroup>
+                <FormGroup id="datePicker">
                     <Label for="selectedDate">Date</Label>
                     <InputGroup>
                         <InputGroupAddon addonType="prepend">
                             <Button id="reverseDate" onClick={() => this.moveDate(-this.state.interval)}><i className="fas fa-angle-left" /></Button>
                         </InputGroupAddon>
-                        <Input type="date" name="date" id="selectedDate" value={this.state.currentDate} onChange={(event) => this.inputChange(event)} />
+                        <Input type="date" name="date" id="selectedDate" max={DateTime.local().toISODate()} value={this.state.currentDate} onChange={(event) => this.inputChange(event)} />
                         <InputGroupAddon addonType="append">
-                            <Button id="forwardDate" onClick={() => this.moveDate(this.state.interval)}><i className="fas fa-angle-right" /></Button>
+                            <Button id="forwardDate" disabled={this.state.currentDate === DateTime.local().toISODate()} onClick={() => this.moveDate(this.state.interval)}><i className="fas fa-angle-right" /></Button>
                         </InputGroupAddon>
                     </InputGroup>
                 </FormGroup>
@@ -244,10 +276,16 @@ class Timesheets extends React.Component {
                         <Input type="time" name="endTime" id="endTime" value={this.state?.newTask?.endTime} onChange={(event) => this.inputChange(event)} />
 
                         <FormGroup>
-                            <Label for="taskDuration">Duration (hours, to the nearest 0.25)</Label>
-                            <Input type="number" plaintext name="taskDuration" id="taskDuration" value={this.state.newTask.duration} disabled invalid={this.state?.newTask?.durationInvalid} />
-                            <FormFeedback>Entries below 0 and above 18 are not allowed.</FormFeedback>
+                            <Label for="taskDuration">Duration (to the nearest 15min)</Label>
+                            <Input plaintext name="taskDuration" id="taskDuration" value={Duration.fromObject({ hours: this.state.newTask.duration }).toFormat("hh:mm")} disabled invalid={this.state?.newTask?.durationInvalid} />
+                            <FormFeedback>Task duration cannot be 0 or above 18, please correct start and end times.</FormFeedback>
                         </FormGroup>
+
+                        <Alert color="danger" hidden={!(this.state.status?.length > 0)}>
+                            <ul>
+                                {Array.isArray(this.state?.status) ? this.state.status.map((status, index) => (<li key={index}>{status}</li>)) : null}
+                            </ul>
+                        </Alert>
 
                         <Button id="addTimesheetEntry" color="info" onClick={() => this.addTimesheetEntry()}><i className="fas fa-plus" /></Button>
                         <Button id="clearTimesheetEntry" onClick={() => this.resetTimesheetEntry()}>Clear</Button>
@@ -256,11 +294,14 @@ class Timesheets extends React.Component {
                 </section>
 
 
+
+
                 <section id="tableTimesheetOverview">
                     <h3>My activities</h3>
-                    <TimesheetTable timesheetData={this.state.timesheetData} mobile={this.state.windowState === "mobile"} taskData={this.state.taskData} func={this.tableFunctions}/>
+                    <TimesheetTable timesheetData={this.state.timesheetData} mobile={this.state.windowState === "mobile"} taskData={this.state.taskData} func={this.tableFunctions} />
                 </section>
-            </article>
+                </article>
+            </main>
         );
     }
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Duration } from 'luxon';
 
 import { Table, Alert, Input, FormGroup, Label, Button, InputGroup, InputGroupAddon, FormFeedback } from 'reactstrap';
 
@@ -18,12 +19,8 @@ class TimesheetTable extends React.Component {
                     <thead>
                         <tr>
                             <th>#</th>
-                            {this.props.size !== "mobile" ?
-                                <>
-                                    <th>Start time</th>
-                                    <th>End time</th>
-                                </>
-                                : null}
+                            <th hidden={this.props.mobile}>Start time</th>
+                            <th hidden={this.props.mobile}>End time</th>
                             <th>Activity</th>
                             <th>Duration (h)</th>
                             <th>Actions</th>
@@ -37,15 +34,15 @@ class TimesheetTable extends React.Component {
                                     <td hidden={this.props.mobile}>{row?.startTime}</td>
                                     <td hidden={this.props.mobile}>{row?.endTime}</td>
                                     <td key={row?.taskID}>{
-                                        this.props.taskData.map(taskObject => {
+                                        this.props?.taskData?.map(taskObject => {
                                             return (taskObject.taskID === row.assignmentID) ? taskObject.title : null
                                         }).filter(taskObject => taskObject !== null)
                                     }</td>
-                                    <td>{row.timeAllocation}</td>
+                                    <td>{Duration.fromObject({ hours: row.timeAllocation }).toFormat("hh:mm")}</td>
                                     <td>
                                         <FormGroup>
                                             <Button id="rowEdit" name="rowEdit" className="tableControls" onClick={() => this.props.func("rowEdit", row)}><i className="fas fa-edit"></i></Button>
-                                            <Button id="rowDelete" name="rowDelete" className="tableControls"><i className="fas fa-trash"></i></Button>
+                                            <Button id="rowDelete" name="rowDelete" className="tableControls" onClick={() => this.props.func("rowDelete", row)}><i className="fas fa-trash"></i></Button>
                                         </FormGroup>
                                     </td>
                                 </tr>

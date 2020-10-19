@@ -9,4 +9,13 @@ const loginUser = (googleAuthTokenData) => {
     )
 }
 
-export { loginUser };
+const logoffUser = () => {
+    return (
+        {
+            type: "LOGOFF_USER",
+            payload: null
+        }
+    )
+}
+
+export { loginUser, logoffUser };
