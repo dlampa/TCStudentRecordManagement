@@ -79,7 +79,7 @@ namespace TCStudentRecordManagement.Controllers
                     _context.TaskTypes.Add(newTaskType);
                     await _context.SaveChangesAsync();
 
-                    Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [ADD] TaskType '{description}' successful", Serilog.Events.LogEventLevel.Information);
+                    Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [ADD] TaskType '{description}' successful", Serilog.Events.LogEventLevel.Information);
 
                     // Convert back to DTO and return to user
                     TaskTypeDTO response = new TaskTypeDTO(newTaskType);

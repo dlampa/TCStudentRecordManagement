@@ -8,7 +8,7 @@ import axios from 'axios';
 // Actions
 import { loginUser } from './actions';
 
-import './App.css';
+import './css/App.css';
 
 
 class App extends React.Component {

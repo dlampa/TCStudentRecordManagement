@@ -1,0 +1,61 @@
+.listItem {
+    border-radius: 0.25rem;
+    margin-bottom: 10px;
+    background-color: var(--gray-dark);
+}
+
+.listRecord {
+    font-size: x-small;
+    color: var(--light);
+    padding: 2px 5px;
+}
+
+.listData {
+    background-color: var(--secondary);
+    color: var(--light);
+    padding: 2px 5px;
+}
+
+.listName {
+font-size: larger;
+font-weight: 600;
+}
+
+.listEmail a {
+    color: var(--light);
+}
+
+.listBeartracks {
+font-size: smaller;
+}
+
+.listFooter {
+display: flex;
+justify-content: space-between;
+}
+
+.activeStatus {
+font-size: smaller;
+}
+
+.listControls {
+    border: none;
+    background-color: transparent;
+}
+
+.listControls button {
+    border-radius: 0.25rem;
+    background-color: transparent;
+    border-color: transparent;
+    width: 30px;
+    height: 30px;
+    margin: 2px;
+    border-style:none;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.listControls button:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: var(--light);
+}
+                                      

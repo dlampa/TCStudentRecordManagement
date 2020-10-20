@@ -18,7 +18,6 @@ class Timesheets extends React.Component {
         this.state = {
             currentDate: DateTime.local().toISODate(),
             newTask: { duration: 0, durationInvalid: false, startTime: "00:00", endTime: "00:00" },
-            timesheetModifiedButNotSaved: false,
             status: null,
             timesheetData: null,
             taskData: null
@@ -60,11 +59,12 @@ class Timesheets extends React.Component {
         // Update timesheet when date changes.
 
         if (this.state.currentDate !== prevState.currentDate) {
+            this.retrieveTasks();
             this.retrieveTimesheets();
         }
 
         if (this.state.newTask !== prevState.newTask) {
-            this.calcDateDiff(this.state.newTask);
+            this.calcTimeDiff(this.state.newTask);
         }
     }
 
@@ -74,7 +74,7 @@ class Timesheets extends React.Component {
         }
     }
 
-    calcDateDiff = (newTask) => {
+    calcTimeDiff = (newTask) => {
         if (newTask !== undefined) {
             const startTime = DateTime.fromFormat(newTask.startTime, "HH:mm");
             const endTime = DateTime.fromFormat(newTask.endTime, "HH:mm");
@@ -98,6 +98,7 @@ class Timesheets extends React.Component {
 
 
     inputChange = async (event) => {
+
         let newTask = this.state.newTask;
         switch (event?.target?.id) {
             case "selectedDate":
@@ -114,12 +115,12 @@ class Timesheets extends React.Component {
                 break;
             case "startTime":
                 newTask.startTime = event.target.value;
-                newTask = this.calcDateDiff(newTask);
+                newTask = this.calcTimeDiff(newTask);
                 await this.setState({ newTask });
                 break;
             case "endTime":
                 newTask.endTime = event.target.value;
-                newTask = this.calcDateDiff(newTask);
+                newTask = this.calcTimeDiff(newTask);
                 await this.setState({ newTask });
                 break;
             default:
@@ -130,6 +131,7 @@ class Timesheets extends React.Component {
     }
 
     addTimesheetEntry = async () => {
+        this.calcTimeDiff();
         if (this.props?.auth !== undefined && !this.state.newTask.invalidSub) {
             const response = await ax(process.env.REACT_APP_APIURL_TIMESHEETS_ADD, {
                 method: 'put',
@@ -145,11 +147,14 @@ class Timesheets extends React.Component {
             console.log(response);
 
             if (response.status === 200) {
-                console.log("here");
-                await this.retrieveTasks();
+                // Update timesheet
+                await this.retrieveTimesheets();
                 await this.setState({ status: [] });
             } else {
                 await this.setState({ status: response?.errResponse?.errors || response?.errResponse?.message });
+                if (response.errResponse.status === 400) {
+                    await this.setState({ status: ["Invalid data sent through to the API. Please check inputs and try again."] });
+                };
             }
 
         }
@@ -157,15 +162,21 @@ class Timesheets extends React.Component {
 
     retrieveTasks = async () => {
         if (this.props?.auth !== undefined) {
-
+            const newTask = this.state.newTask;
             const response = await ax(process.env.REACT_APP_APIURL_TASKS_GET, {
                 params: {
                     startDate: DateTime.fromISO(this.state.currentDate).minus({ days: 7 }).toISODate()
                 }
             }, this.props.auth.tokenID);
-
+            
             if (response?.data !== undefined) {
                 await this.setState({ taskData: response.data });
+
+                // Update the Task Input selection
+                if (this.state.taskData.length > 0) {
+                    newTask.taskID = this.state.taskData[0].taskID;
+                }
+                await this.setState({ newTask });
                 await this.setState({ status: [] });
             } else {
                 await this.setState({ status: response?.errResponse?.errors || response?.errResponse?.message });
@@ -207,6 +218,10 @@ class Timesheets extends React.Component {
         }
     }
 
+    resetTimesheetEntry = async () => {
+        await this.setState({ newTask: { duration: 0, durationInvalid: true, invalidSub: true, startTime: "00:00", endTime: "00:00" } });
+        await this.retrieveTasks();
+    }
 
     tableFunctions = async (callerID, row) => {
         const newTask = this.state.newTask;
@@ -248,12 +263,11 @@ class Timesheets extends React.Component {
                 
                 */}
                 <FormGroup id="datePicker">
-                    <Label for="selectedDate">Date</Label>
                     <InputGroup>
                         <InputGroupAddon addonType="prepend">
                             <Button id="reverseDate" onClick={() => this.moveDate(-this.state.interval)}><i className="fas fa-angle-left" /></Button>
                         </InputGroupAddon>
-                        <Input type="date" name="date" id="selectedDate" max={DateTime.local().toISODate()} value={this.state.currentDate} onChange={(event) => this.inputChange(event)} />
+                            <Input type="date" name="date" id="selectedDate" max={DateTime.local().toISODate()} value={this.state.currentDate} onChange={(event) => this.inputChange(event)} onClick={(event) => this.inputChange(event)} />
                         <InputGroupAddon addonType="append">
                             <Button id="forwardDate" disabled={this.state.currentDate === DateTime.local().toISODate()} onClick={() => this.moveDate(this.state.interval)}><i className="fas fa-angle-right" /></Button>
                         </InputGroupAddon>
@@ -264,7 +278,7 @@ class Timesheets extends React.Component {
                     <h3>Add a time entry</h3>
                     <FormGroup>
                         <Label for="selectTask">Task/Activity</Label>
-                        <Input type="select" name="selectTask" id="selectTask" value={this.state.newTask.taskID} onChange={(event) => this.inputChange(event)}>
+                        <Input type="select" name="selectTask" id="selectTask" defaultValue={this.state.newTask.taskID} value={this.state.newTask.taskID} onChange={(event) => this.inputChange(event)}>
                             {/* Retrieve the list of tasks for the user's cohort, sorted reverse by endDate */}
                             {this.state.taskData?.map((task, index) => (<option key={index} value={task.taskID}>{task.title}</option>))}
                         </Input>
@@ -277,7 +291,7 @@ class Timesheets extends React.Component {
 
                         <FormGroup>
                             <Label for="taskDuration">Duration (to the nearest 15min)</Label>
-                            <Input plaintext name="taskDuration" id="taskDuration" value={Duration.fromObject({ hours: this.state.newTask.duration }).toFormat("hh:mm")} disabled invalid={this.state?.newTask?.durationInvalid} />
+                            <Input plaintext name="taskDuration" id="taskDuration" value={Duration.fromObject({ hours: this.state.newTask.duration }).toFormat("hh:mm")} disabled invalid={this.state.newTask.invalidSub} />
                             <FormFeedback>Task duration cannot be 0 or above 18, please correct start and end times.</FormFeedback>
                         </FormGroup>
 
@@ -287,7 +301,7 @@ class Timesheets extends React.Component {
                             </ul>
                         </Alert>
 
-                        <Button id="addTimesheetEntry" color="info" onClick={() => this.addTimesheetEntry()}><i className="fas fa-plus" /></Button>
+                        <Button id="addTimesheetEntry" color="info" onClick={() => this.addTimesheetEntry()} disabled={this.state.newTask.invalidSub}><i className="fas fa-plus" /></Button>
                         <Button id="clearTimesheetEntry" onClick={() => this.resetTimesheetEntry()}>Clear</Button>
 
                     </FormGroup>

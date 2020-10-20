@@ -1,7 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { DateTime, Interval, Duration } from 'luxon';
 import { Input, FormGroup, Label, Button, InputGroup, InputGroupAddon, FormFeedback, Alert, Modal, ModalBody, ModalHeader, ModalFooter } from 'reactstrap';
 import StudentsTable from './StudentsTable';
 import AppNavbar from './Navbar';
@@ -19,6 +18,14 @@ class Students extends React.Component {
             cohortData: null,
             dialogs: { dialogAddStudent: false, dialogModStudent: false },
             newStudent: {
+                firstname: null, firstnameInvalid: true,
+                lastname: null, lastnameInvalid: true,
+                email: null, emailInvalid: true,
+                bearTracksID: null,
+                invalidSub: true
+            },
+            activeStudent: {
+                studentID: null,
                 firstname: null, firstnameInvalid: true,
                 lastname: null, lastnameInvalid: true,
                 email: null, emailInvalid: true,
@@ -85,6 +92,7 @@ class Students extends React.Component {
 
     inputChange = async (event) => {
         let newStudent = this.state.newStudent;
+        let activeStudent = this.state.activeStudent;
         switch (event?.target?.id) {
             case "selectCohort":
                 await this.setState({ activeCohortID: Number(event.target.value) });
@@ -112,6 +120,29 @@ class Students extends React.Component {
                 newStudent.invalidSub = newStudent.firstnameInvalid || newStudent.lastnameInvalid || newStudent.emailInvalid;
                 await this.setState({ newStudent });
                 break;
+            case "studentModFirstname":
+                activeStudent.firstname = event.target.value;
+                activeStudent.firstnameInvalid = (activeStudent.firstname.trim().length == 0);
+                activeStudent.invalidSub = activeStudent.firstnameInvalid || activeStudent.lastnameInvalid || activeStudent.emailInvalid;
+                await this.setState({ activeStudent });
+                break;
+            case "studentModLastname":
+                activeStudent.lastname = event.target.value;
+                activeStudent.lastnameInvalid = (activeStudent.lastname.trim().length == 0);
+                activeStudent.invalidSub = activeStudent.firstnameInvalid || activeStudent.lastnameInvalid || activeStudent.emailInvalid;
+                await this.setState({ activeStudent });
+                break;
+            case "studentModEmail":
+                activeStudent.email = event.target.value;
+                activeStudent.emailInvalid = (false);
+                activeStudent.invalidSub = activeStudent.firstnameInvalid || activeStudent.lastnameInvalid || activeStudent.emailInvalid;
+                await this.setState({ activeStudent });
+                break;
+            case "studentModBearTracksID":
+                activeStudent.bearTracksID = event.target.value;
+                activeStudent.invalidSub = activeStudent.firstnameInvalid || activeStudent.lastnameInvalid || activeStudent.emailInvalid;
+                await this.setState({ activeStudent });
+                break;
             default:
                 console.log(event.target?.id);
                 break;
@@ -132,9 +163,9 @@ class Students extends React.Component {
         }
     }
 
-    clearAddStudentInputs = async () => {
+    clearStudentInputs = async (studentObject) => {
         await this.setState({
-            newStudent: {
+            [studentObject]: {
                 firstname: null, firstnameInvalid: true,
                 lastname: null, lastnameInvalid: true,
                 email: null, emailInvalid: true,
@@ -164,8 +195,11 @@ class Students extends React.Component {
                 // Reset error message output
                 await this.setState({ status: [] });
 
+                // Hide the dialog
+                this.toggleDialog("addStudent");
+
                 // Reset input fields
-                await this.clearAddStudentInputs();
+                await this.clearStudentInputs("newStudent");
 
             } else {
                 // Commit error messages to state
@@ -174,6 +208,48 @@ class Students extends React.Component {
 
         }
     }
+
+    modifyStudent = async () => {
+        if (this.props?.auth !== undefined && !this.state.activeStudent.invalidSub) {
+            const response = await ax(process.env.REACT_APP_APIURL_STUDENTS_MODIFY, {
+                method: 'put',
+                data: {
+                    StudentID: Number(this.state.activeStudent.studentID),
+                    CohortID: Number(this.state.activeCohortID),
+                    Firstname: this.state.activeStudent.firstname,
+                    Lastname: this.state.activeStudent.lastname,
+                    Email: this.state.activeStudent.email,
+                    Active: true,
+                    BearTracksID: this.state.activeStudent.bearTracksID
+                }
+            }, this.props.auth.tokenID);
+
+            console.log(response);
+
+            if (response.status === 200) {
+                // Reset error message output
+                await this.setState({ status: [] });
+
+                // Hide the dialog
+                this.toggleDialog("modStudent");
+
+                // Reset input fields
+                await this.clearStudentInputs("activeStudent");
+
+                // Refresh student table
+                this.retrieveStudents();
+
+            } else {
+                // Commit error messages to state
+                await this.setState({ status: response?.errResponse?.errors || response?.errResponse?.message });
+            }
+
+        }
+    }
+
+
+
+
 
     retrieveCohorts = async () => {
         if (this.props?.auth !== undefined) {
@@ -208,7 +284,7 @@ class Students extends React.Component {
     deleteStudent = async (studentRecord) => {
         // This method is only usable by superAdmin
         if (this.props?.auth !== undefined) {
-            const response = await ax(process.env.REACT_APP_APIURL_TIMESHEETS_DELETE, {
+            const response = await ax(process.env.REACT_APP_APIURL_STUDENTS_DELETE, {
                 method: 'delete',
                 params: {
                     id: studentRecord.studentID
@@ -225,11 +301,11 @@ class Students extends React.Component {
 
     changeStudentActiveState = async (studentRecord) => {
         if (this.props?.auth !== undefined) {
-            const response = await ax(process.env.REACT_APP_APIURL_TIMESHEETS_DELETE, {
+            const response = await ax(process.env.REACT_APP_APIURL_STUDENTS_ACTIVATE, {
                 method: 'put',
                 params: {
-                    id: studentRecord.studentID,
-                    state: !studentRecord.active
+                    id: Number(studentRecord.studentID),
+                    state: !studentRecord.user.active
                 }
             }, this.props.auth.tokenID);
             if (response?.data !== undefined) {
@@ -244,16 +320,27 @@ class Students extends React.Component {
     tableFunctions = async (callerID, studentRecord) => {
         switch (callerID) {
             case ("studentEdit"):
-                await this.setState({ activeStudent: studentRecord });
+                const activeStudent = this.state.activeStudent;
+                activeStudent.studentID = studentRecord.studentID;
+                activeStudent.firstname = studentRecord.user.firstname;
+                activeStudent.firstnameInvalid = false;
+                activeStudent.lastname = studentRecord.user.lastname;
+                activeStudent.lastnameInvalid = false;
+                activeStudent.email = studentRecord.user.email;
+                activeStudent.emailInvalid= false;
+                activeStudent.bearTracksID = studentRecord.beartTracksID;
+                await this.setState({ activeStudent: activeStudent});
                 this.toggleDialog("modStudent");
+                this.retrieveStudents();
                 break;
             case ("studentState"):
-                await this.changeStudentActiveState(studentRecord.studentRecord);
+                await this.changeStudentActiveState(studentRecord);
+                this.retrieveStudents();
                 break;
             case ("studentDelete"):
                 await this.setState({ activeStudentID: studentRecord.studentID });
                 await this.deleteTimesheetRecord();
-                this.retrieveTimesheets();
+                this.retrieveStudents();
                 break;
             default:
                 break;
@@ -264,10 +351,8 @@ class Students extends React.Component {
 
         // Redirect to first page if login data is missing
         if (this.props?.auth?.tokenID === undefined) {
-            console.log("here");
             this.props.history.push(process.env.PUBLIC_URL);
         } else if (this.props.auth.rights === "Student") {
-            console.log("no2");
             this.props.history.push(process.env.PUBLIC_URL);
         }
 
@@ -276,7 +361,7 @@ class Students extends React.Component {
                 <header>
                     <AppNavbar mobile={this.state.windowState === "mobile"} />
                 </header>
-                <article id="">
+                <article id="studentRecordManagement">
                     <h2 className="titleDate">
                         Student record management
                     </h2>
@@ -313,25 +398,25 @@ class Students extends React.Component {
                                 <h4>{this.state?.cohortData?.find(x => x.cohortID == this.state.activeCohortID)?.name}</h4>
                                 <FormGroup>
                                     <FormGroup>
-                                        <Label for="studentFirstname">Firstname</Label>
+                                        <Label for="studentFirstname">First name:</Label>
                                         <Input name="studentFirstname" id="studentFirstname" value={this.state.newStudent.firstname ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.newStudent.firstnameInvalid} />
                                         <FormFeedback>Firstname cannot be empty or consist of only whitespace.</FormFeedback>
                                     </FormGroup>
 
                                     <FormGroup>
-                                        <Label for="studentLastname">Lastname</Label>
+                                        <Label for="studentLastname">Last name:</Label>
                                         <Input name="studentLastname" id="studentLastname" value={this.state.newStudent.lastname ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.newStudent.lastnameInvalid} />
                                         <FormFeedback>Lastname cannot be empty or consist of only whitespace.</FormFeedback>
                                     </FormGroup>
 
                                     <FormGroup>
-                                        <Label for="studentEmail">Email</Label>
-                                        <Input type="email" name="studentEmail" id="studentEmail" value={this.state.newStudent.email} onChange={(event) => this.inputChange(event)} invalid={this.state.newStudent.emailInvalid} />
+                                        <Label for="studentEmail">Email:</Label>
+                                        <Input type="email" name="studentEmail" id="studentEmail" value={this.state.newStudent.email ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.newStudent.emailInvalid} />
                                         <FormFeedback>Email address must be unique - a user with this email address already exists.</FormFeedback>
                                     </FormGroup>
 
                                     <FormGroup>
-                                        <Label for="studentBearTracksID">BearTracksID (optional)</Label>
+                                        <Label for="studentBearTracksID">BearTracksID (optional):</Label>
                                         <Input name="studentBearTracksID" id="studentBearTracksID" value={this.state.newStudent.bearTracksID} onChange={(event) => this.inputChange(event)} />
                                     </FormGroup>
                                 </FormGroup>
@@ -344,37 +429,37 @@ class Students extends React.Component {
                             </ModalBody>
                             <ModalFooter>
                                 <Button color="info" onClick={() => { this.addStudent(); }}>Add Student</Button>{' '}
-                                <Button onClick={() => { this.toggleDialog("addStudent") ; this.clearAddStudentInputs() }}>Cancel</Button>
+                                <Button onClick={() => { this.toggleDialog("addStudent") ; this.clearStudentInputs("addStudent") }}>Cancel</Button>
                             </ModalFooter>
                         </Modal>
                     </section>
 
                     <section id="inputModStudent">
                             <Modal id="dialogModStudent" isOpen={this.state.dialogs.dialogModStudent} toggle={() => this.toggleDialog("modStudent")}>
-                            <ModalHeader toggle={() => this.setState((state) => state.dialogs.dialogAddStudent = !state.dialogs.dialogAddStudent)}>Modify Student record</ModalHeader>
+                            <ModalHeader toggle={() => this.toggleDialog("modStudent")}>Modify Student record</ModalHeader>
                             <ModalBody>
                                 <FormGroup>
                                     <FormGroup>
                                         <Label for="studentFirstname">Firstname</Label>
-                                        <Input name="studentFirstname" id="studentFirstname" value={this.state.newStudent.firstname ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.newStudent.firstnameInvalid} />
+                                        <Input name="studentFirstname" id="studentModFirstname" value={this.state.activeStudent.firstname ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.activeStudent.firstnameInvalid} />
                                         <FormFeedback>Firstname cannot be empty or consist of only whitespace.</FormFeedback>
                                     </FormGroup>
 
                                     <FormGroup>
                                         <Label for="studentLastname">Lastname</Label>
-                                        <Input name="studentLastname" id="studentLastname" value={this.state.newStudent.lastname ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.newStudent.lastnameInvalid} />
+                                        <Input name="studentLastname" id="studentModLastname" value={this.state.activeStudent.lastname ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.activeStudent.lastnameInvalid} />
                                         <FormFeedback>Lastname cannot be empty or consist of only whitespace.</FormFeedback>
                                     </FormGroup>
 
                                     <FormGroup>
                                         <Label for="studentEmail">Email</Label>
-                                        <Input type="email" name="studentEmail" id="studentEmail" value={this.state.newStudent.email} onChange={(event) => this.inputChange(event)} invalid={this.state.newStudent.emailInvalid} />
+                                        <Input type="email" name="studentEmail" id="studentModEmail" value={this.state.activeStudent.email ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.activeStudent.emailInvalid} />
                                         <FormFeedback>Email address must be unique - a user with this email address already exists.</FormFeedback>
                                     </FormGroup>
 
                                     <FormGroup>
                                         <Label for="studentBearTracksID">BearTracksID (optional)</Label>
-                                        <Input name="studentBearTracksID" id="studentBearTracksID" value={this.state.newStudent.bearTracksID} onChange={(event) => this.inputChange(event)} />
+                                        <Input name="studentBearTracksID" id="studentModBearTracksID" value={this.state.activeStudent.bearTracksID} onChange={(event) => this.inputChange(event)} />
                                     </FormGroup>
                                 </FormGroup>
                                 <Alert color="danger" hidden={!(this.state.status?.length > 0)}>
@@ -385,8 +470,8 @@ class Students extends React.Component {
                                 </Alert>
                             </ModalBody>
                             <ModalFooter>
-                                <Button color="info" onClick={() => { this.addStudent(); }}>Add Student</Button>{' '}
-                                <Button onClick={() => { this.toggleDialog("addStudent"); this.clearAddUserInputs() }}>Cancel</Button>
+                                <Button color="info" onClick={() => { this.modifyStudent(); }}>Modify Student</Button>{' '}
+                                <Button onClick={() => { this.toggleDialog("modStudent"); this.clearStudentInputs("activeStudent") }}>Cancel</Button>
                             </ModalFooter>
                         </Modal>
                     </section>
@@ -395,7 +480,7 @@ class Students extends React.Component {
                     <section id="tableStudents">
                         <h3>Users</h3>
 
-                        <StudentsTable studentData={this.state.studentData} mobile={this.state.windowState === "mobile"} func={this.tableFunctions} />
+                        <StudentsTable studentData={this.state.studentData} mobile={this.state.windowState === "mobile"} role={this.props.auth?.rights} func={this.tableFunctions} />
                     </section>
                 </article>
             </main>

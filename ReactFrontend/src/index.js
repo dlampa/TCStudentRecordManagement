@@ -19,6 +19,7 @@ import App from './App';
 import Timesheets from './components/Timesheets';
 import Logout from './components/Logout';
 import Students from './components/Students';
+import Attendance from './components/Attendance';
 
 
 const store = createStore(TCDataReducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()); // Redux devtools
@@ -29,6 +30,7 @@ const Root = (store) => (
       <Switch>
       <Route path={process.env.PUBLIC_URL + "/"} exact component={App} />
         <Route path={process.env.PUBLIC_URL + "/timesheets/"} exact component={Timesheets} />
+        <Route path={process.env.PUBLIC_URL + "/attendance/"} exact component={Attendance} />
         <Route path={process.env.PUBLIC_URL + "/students/"} exact component={Students} />
         {/*
         <Route path={process.env.PUBLIC_URL + "/timeline/"} component={Timesheets} />
