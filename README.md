@@ -1,8 +1,4 @@
 
-
-![Github logo]()
-                                                       
-
 # TECHCareers Capstone Project - myTECHCareers student record management API + frontend
 
 Effective time management is an essential skill for software developers. To entrench this behavior, TECHCareers students are encouraged to keep an accurate record of the time spent on studying, practice problems and assignments. 
