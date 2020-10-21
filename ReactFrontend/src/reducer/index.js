@@ -10,8 +10,8 @@ Data structure
         email: string, 
         tokenID: string, 
         rights: string enum (student, staff, super admin), 
+        imageURL: string(URL) 
         cohortID: int
-        profilePic: string(URL) 
     } 
 }
 

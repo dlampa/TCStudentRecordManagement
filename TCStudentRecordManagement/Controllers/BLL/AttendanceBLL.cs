@@ -157,7 +157,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
                 return exceptionList;
             }
 
-        }
+        }// End of GetAttendanceBLL
     }
 
 

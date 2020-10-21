@@ -21,6 +21,9 @@ namespace TCStudentRecordManagement.Models.DTO
 
         public DateTime Date { get; set; }
 
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+
         public decimal TimeAllocation { get; set; }
 
         public TimesheetDTO()
@@ -34,6 +37,8 @@ namespace TCStudentRecordManagement.Models.DTO
             StudentID = inputTimesheet.StudentID;
             AssignmentID = inputTimesheet.AssignmentID;
             Date = inputTimesheet.Date;
+            StartTime = inputTimesheet.StartTime;
+            EndTime = inputTimesheet.EndTime;
             TimeAllocation = inputTimesheet.TimeAllocation;
         }
 
@@ -51,6 +56,9 @@ namespace TCStudentRecordManagement.Models.DTO
         public int AssignmentID { get; set; }
         public int CohortID { get; set; }
         public DateTime Date { get; set; }
+
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
 
         // Hide property from JSON serializer
         // Ref: https://stackoverflow.com/a/55806177/12802214
@@ -75,6 +83,8 @@ namespace TCStudentRecordManagement.Models.DTO
             UnitID = inputTimesheet?.AssignmentAlloc?.UnitID ?? 0;
             TypeID = inputTimesheet?.AssignmentAlloc?.TypeID ?? 0;
             AssignmentID = inputTimesheet.AssignmentID;
+            StartTime = inputTimesheet.StartTime;
+            EndTime = inputTimesheet.EndTime;
             CohortID = inputTimesheet?.ForStudent?.CohortID ?? 0;
             TimeAllocation = inputTimesheet.TimeAllocation;
             Date = inputTimesheet.Date;

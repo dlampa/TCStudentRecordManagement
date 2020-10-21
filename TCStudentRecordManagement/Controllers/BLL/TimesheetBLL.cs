@@ -114,8 +114,8 @@ namespace TCStudentRecordManagement.Controllers.BLL
                 { "Specified date is older than 7 days", ((DateTime.Today - timesheetRecord.Date).Days > 7) && !isUserStaff },
                 { "Specified date cannot be in the future", !(timesheetRecord.Date <= DateTime.Today) },
                 { "TimeAllocation has to be a positive number, or zero", !(timesheetRecord.TimeAllocation >= 0) },
-                { "TimeAllocation has to be less than or equal to 18h", !(timesheetRecord.TimeAllocation <= 18) },
-                { "Only one record per AssignmentID per date is allowed", _context.Timesheets.Any(x => x.Date == timesheetRecord.Date && x.AssignmentID == timesheetRecord.AssignmentID && x.StudentID == timesheetRecord.StudentID) }
+                { "TimeAllocation has to be less than or equal to 18h", !(timesheetRecord.TimeAllocation <= 18) }
+                // { "Only one record per AssignmentID per date is allowed", _context.Timesheets.Any(x => x.Date == timesheetRecord.Date && x.AssignmentID == timesheetRecord.AssignmentID && x.StudentID == timesheetRecord.StudentID) }
             };
 
             foreach (KeyValuePair<string, bool> kvp in exceptionTests)
@@ -160,7 +160,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
             {
                 { "StudentID in the record cannot differ from the StudentID of the authenticated user", !(_context.Timesheets.Where(x => x.RecordID == timesheetModRecord.RecordID).First().StudentID == currentStudentID || isUserStaff) },
                 { "Specified AssignmentID does not exist", !_context.Tasks.Any(x => x.TaskID == timesheetModRecord.AssignmentID) },
-                { "Specified date is older than 7 days", !(((DateTime.Today - _context.Timesheets.Where(x => x.RecordID == timesheetModRecord.RecordID).First().Date).Days > 7) || isUserStaff) },
+                { "Specified date is older than 7 days", !(((DateTime.Today - _context.Timesheets.Where(x => x.RecordID == timesheetModRecord.RecordID).First().Date).Days < 7) || isUserStaff) },
                 { "Specified date cannot be in the future", !(timesheetModRecord.Date <= DateTime.Today) },
                 { "TimeAllocation has to be a positive number, or zero", !(timesheetModRecord.TimeAllocation >= 0) },
                 { "TimeAllocation has to be less than or equal to 18h", !(timesheetModRecord.TimeAllocation <= 18) }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Controllers.BLL;
@@ -14,9 +14,9 @@ using TCStudentRecordManagement.Utils;
 
 namespace TCStudentRecordManagement.Controllers
 {
-    [Route("/attendances")]
-    [Authorize]
     [ApiController]
+    [Route("[Controller]")]
+    [Authorize]
     public class AttendancesController : ControllerBase
     {
         private readonly DataContext _context;
@@ -66,7 +66,7 @@ namespace TCStudentRecordManagement.Controllers
                     List<AttendanceDTO> response = new List<AttendanceDTO>();
                     dbResponse.ForEach(x => response.Add(new AttendanceDTO(x)));
                     
-                    Logger.Msg<AttendancesController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [GET]", Serilog.Events.LogEventLevel.Debug);
+                    Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [GET]", Serilog.Events.LogEventLevel.Debug);
                     return Ok(response);
                 }
                 catch (Exception ex)
@@ -78,7 +78,7 @@ namespace TCStudentRecordManagement.Controllers
                     return StatusCode(500, new { errors = "Database update failed. Contact the administrator to resolve this issue." });
                 }
             }
-        }
+        } // End of Get
 
         /// <summary>
         /// Add attendance record to the database.  Attendance record properties are read from the request body from a JSON representation of the AttendanceDTO object.
@@ -118,7 +118,7 @@ namespace TCStudentRecordManagement.Controllers
                     // Save changes
                     await _context.SaveChangesAsync();
 
-                    Logger.Msg<AttendancesController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ADD] attendance for StudentID '{newAttendanceRecord.StudentID}' recorded", Serilog.Events.LogEventLevel.Information);
+                    Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [ADD] attendance for StudentID '{newAttendanceRecord.StudentID}' recorded", Serilog.Events.LogEventLevel.Information);
                     AttendanceDTO response = new AttendanceDTO(newAttendanceRecord);
                     return Ok(response);
                 }
@@ -132,7 +132,7 @@ namespace TCStudentRecordManagement.Controllers
                 }
             }
 
-        }
+        } // End of AddAttendance
 
         /// <summary>
         /// Modify attendance record in the Attendances table. Modified properties are read from the body of the request from a JSON representation of the AttendanceModDTO object.
@@ -174,7 +174,7 @@ namespace TCStudentRecordManagement.Controllers
                         // Save changes
                         await _context.SaveChangesAsync();
 
-                        Logger.Msg<AttendancesController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [MODIFY] attendance RecorID '{attendanceRecord.RecordID}' updated", Serilog.Events.LogEventLevel.Information);
+                        Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [MODIFY] attendance RecordID '{attendanceRecord.RecordID}' updated", Serilog.Events.LogEventLevel.Information);
                         AttendanceDTO response = new AttendanceDTO(attendanceRecord);
                         return Ok(response);
                     }
@@ -200,7 +200,6 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-
         [HttpDelete("delete")]
         [Authorize(Policy = "SuperAdmin")]
         public async Task<ActionResult> Delete(int id)
@@ -210,7 +209,7 @@ namespace TCStudentRecordManagement.Controllers
 
             if (attendance == null)
             {
-                Logger.Msg<AttendancesController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] RecordID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [DELETE] RecordID: {id} not found", Serilog.Events.LogEventLevel.Debug);
                 return NotFound();
             }
 
@@ -219,13 +218,13 @@ namespace TCStudentRecordManagement.Controllers
                 _context.AttendanceRecords.Remove(attendance);
                 await _context.SaveChangesAsync();
 
-                Logger.Msg<AttendancesController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] RecordID: {id} success", Serilog.Events.LogEventLevel.Information);
+                Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [DELETE] RecordID: {id} success", Serilog.Events.LogEventLevel.Information);
                 return Ok(new AttendanceDTO(attendance));
             }
             catch (Exception ex)
             {
                 // Probably due to FK violation
-                Logger.Msg<CohortsController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+                Logger.Msg<AttendancesController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
 
                 // Return response to client
                 return StatusCode(500, new { errors = "Database update failed." });

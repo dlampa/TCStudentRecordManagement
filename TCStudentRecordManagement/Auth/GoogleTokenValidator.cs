@@ -73,9 +73,6 @@ namespace TCStudentRecordManagement.Auth
                 {
                     // Get DB record associated with the Email, if it exists.
                     
-                    //User userData = _DataContext.Users.Where(x => x.Email == payload.Email).FirstOrDefault();
-                    // userData.StaffData = _DataContext.Staff.Where(x => x.UserID == userData.UserID).FirstOrDefault();
-
                     User userData = _DataContext.Users.Where(x => x.Email == payload.Email).Include(user => user.StaffData).FirstOrDefault();
 
                     if (userData != null)
@@ -93,9 +90,9 @@ namespace TCStudentRecordManagement.Auth
                         if (userData.ActiveToken != securityToken)
                         {
                             userData.ActiveToken = securityToken;
-                            _DataContext.SaveChangesAsync();
+                            _DataContext.SaveChanges();
 
-                            Logger.Msg<GoogleTokenValidator>($"[LOGIN] SUCCESS User {payload.Email} {(userIsSuperUser ? "(Super)" : userIsStaff ? "(Staff)" : string.Empty)}");
+                            Logger.Msg<GoogleTokenValidator>($"[LOGIN] SUCCESS User {payload.Email} {(userIsSuperUser ? "(Super)" : userIsStaff ? "(Staff)" : string.Empty)}", Serilog.Events.LogEventLevel.Debug);
                         }
                     }
                     else
@@ -118,8 +115,7 @@ namespace TCStudentRecordManagement.Auth
             }
             catch (Exception ex)
             {
-                // TODO fix: 
-                // 1. Check for the type of exception and adapt message accordingly
+              
                 if (ex.InnerException?.Message != null)
                 {
                     Logger.Msg<GoogleTokenValidator>(new SecurityTokenValidationException($"[LOGIN] FAILURE {ex.InnerException.Message}"));
@@ -128,7 +124,7 @@ namespace TCStudentRecordManagement.Auth
                 {
                     Logger.Msg<GoogleTokenValidator>(new SecurityTokenValidationException($"[LOGIN] FAILURE {ex.Message}"));
                 }
-                // TODO Manage this better
+                
                 throw new SecurityTokenValidationException();
             }
 

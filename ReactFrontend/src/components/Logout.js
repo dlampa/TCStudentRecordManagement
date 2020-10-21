@@ -2,6 +2,8 @@ import React from 'react';
 import { withRouter, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { logoffUser } from '../actions/';
+import { GoogleLogout } from 'react-google-login';
+
 
 class Logout extends React.Component {
 
@@ -17,10 +19,14 @@ class Logout extends React.Component {
         });
     }
 
+    redirectToLogin = () => {
+        this.props.history.push("/");
+    }
     render() {
         return (
             <>
                 <div>Thank you for using myTECHCareers.</div>
+                <GoogleLogout autoload={true} onLogoutSuccess={this.redirectToLogin}/>
             </>
         )
     }

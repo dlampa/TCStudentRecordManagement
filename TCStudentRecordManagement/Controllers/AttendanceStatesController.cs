@@ -32,7 +32,6 @@ public class AttendanceStatesController : ControllerBase
     [HttpGet("list")]
     public async Task<ActionResult<IEnumerable<AttendanceStateDTO>>> List()
     {
-
         // Convert AttendanceState to AttendanceStateDTO
         List<AttendanceState> attendanceStateData = await _context.AttendanceStates.ToListAsync();
         List<AttendanceStateDTO> result = new List<AttendanceStateDTO>();
@@ -54,7 +53,7 @@ public class AttendanceStatesController : ControllerBase
     public async Task<ActionResult> AddAttendanceState(string description)
     {
 
-        // Call BLL TaskType Add method with all the parameters
+        // Call BLL Attendance Add method with all the parameters
         object BLLResponse = new AttendanceStateBLL(_context).AddAttendanceStateBLL(description: description);
 
         // Get the base class for the response
@@ -77,7 +76,7 @@ public class AttendanceStatesController : ControllerBase
                 _context.AttendanceStates.Add(newAttendanceState);
                 await _context.SaveChangesAsync();
 
-                Logger.Msg<AttendanceStatesController>($"[{User.FindFirstValue("email")}] [ADD] TaskType '{description}' successful", Serilog.Events.LogEventLevel.Information);
+                Logger.Msg<AttendanceStatesController>($"[{User.FindFirstValue("email")}] [ADD] AttendanceState '{description}' successful", Serilog.Events.LogEventLevel.Information);
 
                 // Convert back to DTO and return to user
                 AttendanceStateDTO response = new AttendanceStateDTO(newAttendanceState);
@@ -107,7 +106,7 @@ public class AttendanceStatesController : ControllerBase
         if (AttendanceStateExists(attendanceState.StateID))
         {
 
-            // Call BLL TaskType Modify method with all the parameters
+            // Call BLL AttendanceState Modify method with all the parameters
             object BLLResponse = new AttendanceStateBLL(_context).ModifyAttendanceStateBLL(attendanceState: attendanceState);
 
             if (BLLResponse.GetType().BaseType == typeof(Exception))
@@ -164,7 +163,7 @@ public class AttendanceStatesController : ControllerBase
     [Authorize(Policy = "SuperAdmin")]
     public async Task<ActionResult> Delete(int id)
     {
-        // Find existing TaskType record in DB
+        // Find existing attendanceState record in DB
         AttendanceState attendanceState = await _context.AttendanceStates.FindAsync(id);
 
         if (attendanceState == null)
@@ -190,8 +189,13 @@ public class AttendanceStatesController : ControllerBase
             return StatusCode(500, new { errors = "Database update failed." });
         }
 
-    }
+    } // End of Delete
 
+    /// <summary>
+    /// Checks for existence of AttendanceState record in the database
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     private bool AttendanceStateExists(int id)
     {
         return _context.AttendanceStates.Any(e => e.StateID == id);

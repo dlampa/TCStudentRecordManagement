@@ -4,8 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Connections.Features;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Controllers.BLL;
@@ -41,7 +39,7 @@ namespace TCStudentRecordManagement.Controllers
         [HttpGet("get")]
         public async Task<ActionResult<IEnumerable<Models.Task>>> Get(int taskID, int cohortID, int typeID, int unitID, DateTime startDate, DateTime endDate)
         {
-            // Call GetAttendanceBLL method with all the parameters
+            // Call GetTaskBLL method with all the parameters
             object BLLResponse = new TaskBLL(_context).GetTaskBLL(taskID: taskID, cohortID: cohortID, typeID: typeID, unitID: unitID, startDate: startDate, endDate: endDate, userClaims: User);
 
             // Get the base class for the response
@@ -49,7 +47,7 @@ namespace TCStudentRecordManagement.Controllers
             if (BLLResponse.GetType().BaseType == typeof(Exception))
             {
                 // Create log entries for Debug log
-                ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<AttendancesController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
+                ((APIException)BLLResponse).Exceptions.ForEach(ex => Logger.Msg<TasksController>((Exception)ex, Serilog.Events.LogEventLevel.Debug));
 
                 // Return response from API
                 return BadRequest(new { errors = ((APIException)BLLResponse).Exceptions.Select(x => x.Message).ToArray() });
@@ -58,7 +56,6 @@ namespace TCStudentRecordManagement.Controllers
             {
                 try
                 {
-                    
                     TaskDTO BLLResponseDTO = (TaskDTO)(BLLResponse);
 
                     // Apply all the criteria with supplied or default values from BLL
@@ -250,17 +247,18 @@ namespace TCStudentRecordManagement.Controllers
                 return StatusCode(500, new { errors = "Database update failed. Perhaps there are students in this cohort?" });
             }
 
-        }
+        }// End of Delete
 
+        /// <summary>
+        /// Checks for existence of Task records in the database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private bool TaskExists(int id)
         {
             return _context.Tasks.Any(e => e.TaskID == id);
-        }
-
-
+        } 
 
     }
-
-
 
 }

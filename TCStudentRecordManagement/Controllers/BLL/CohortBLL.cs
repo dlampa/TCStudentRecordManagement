@@ -16,7 +16,14 @@ namespace TCStudentRecordManagement.Controllers.BLL
             _context = context;
         }
 
-        internal object AddCohort(string name, DateTime startDate, DateTime endDate)
+        /// <summary>
+        /// Business logic for adding Cohort records
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="startDate"></param>
+        /// <param name="endDate"></param>
+        /// <returns></returns>
+        internal object AddCohortBLL(string name, DateTime startDate, DateTime endDate)
         {
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
@@ -56,7 +63,12 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
         } // End of AddCohort
 
-        internal object ModifyCohort(CohortDTO cohort)
+        /// <summary>
+        /// Business logic for modifying Cohort records
+        /// </summary>
+        /// <param name="cohort"></param>
+        /// <returns></returns>
+        internal object ModifyCohortBLL(CohortDTO cohort)
         {
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
@@ -106,6 +118,11 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
         } // End of ModifyCohort
 
+        /// <summary>
+        /// Method for checking if Cohort record exists
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private bool CohortExists(int id)
         {
             // Returns true if cohort exists with a specified CohortID

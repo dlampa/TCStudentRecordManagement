@@ -56,7 +56,8 @@ namespace TCStudentRecordManagement
                                       builder.WithOrigins(Configuration.GetSection("CORSAllowedOrigins").GetChildren().ToArray().Select(x => x.Value).ToArray())
                                                           .AllowAnyHeader()
                                                           .AllowAnyMethod();
-                                      /*builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); */
+                                      // If you'd like to disable CORS, uncomment the line below:
+                                      // builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
                                   });
             });
 
@@ -96,6 +97,9 @@ namespace TCStudentRecordManagement
             services.AddScoped<IAuthorizationHandler, StaffAuthCheckHandler>();
             services.AddScoped<IAuthorizationHandler, SuperAuthCheckHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddControllers().AddJsonOptions(options => 
+                options.JsonSerializerOptions.Converters.Add(new TimeSpanToStringConverter()));
+
 
             services.AddControllers();
         }
@@ -125,7 +129,7 @@ namespace TCStudentRecordManagement
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+              endpoints.MapControllers();
             });
         }
     }

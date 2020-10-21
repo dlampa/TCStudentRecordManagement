@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { Input, FormGroup, Label, Button, InputGroup, InputGroupAddon, FormFeedback, Alert, Modal, ModalBody, ModalHeader, ModalFooter } from 'reactstrap';
 import StudentsTable from './StudentsTable';
-import AppNavbar from './Navbar';
+import AppNavbar from './AppNavbar';
 
 import { ax } from '../js';
 
@@ -18,9 +18,9 @@ class Students extends React.Component {
             cohortData: null,
             dialogs: { dialogAddStudent: false, dialogModStudent: false },
             newStudent: {
-                firstname: null, firstnameInvalid: true,
-                lastname: null, lastnameInvalid: true,
-                email: null, emailInvalid: true,
+                firstname: null, firstnameInvalid: false,
+                lastname: null, lastnameInvalid: false,
+                email: null, emailInvalid: false,
                 bearTracksID: null,
                 invalidSub: true
             },
@@ -38,16 +38,11 @@ class Students extends React.Component {
     // Listen for resize events, then update the isMobile state depending on screen width
     // Ref: https://goshakkk.name/different-mobile-desktop-tablet-layouts-react/
     componentDidMount() {
-        // this.setState({ currentDate: DateTime.local().toISODate() });
-        // this.setState({ newTask: { duration: 0, durationInvalid: false, startTime: "00:00", endTime: "00:00" } });
-
         window.addEventListener('resize', this.handleWindowSizeChange);
         this.handleWindowSizeChange();
 
         // Retrieve a list of Cohorts
         this.retrieveCohorts();
-
-
 
         // Retrieve the list of Students
         this.retrieveStudents();
@@ -111,7 +106,7 @@ class Students extends React.Component {
                 break;
             case "studentEmail":
                 newStudent.email = event.target.value;
-                newStudent.emailInvalid = (false);
+                newStudent.emailInvalid = !(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newStudent.email));
                 newStudent.invalidSub = newStudent.firstnameInvalid || newStudent.lastnameInvalid || newStudent.emailInvalid;
                 await this.setState({ newStudent });
                 break;
@@ -153,6 +148,7 @@ class Students extends React.Component {
         switch (dialog) {
             case "addStudent":
                 this.setState((state) => state.dialogs.dialogAddStudent = !state.dialogs.dialogAddStudent);
+                this.setState((state) => state.status = null);
                 break;
             case "modStudent":
                 this.setState((state) => state.dialogs.dialogModStudent = !state.dialogs.dialogModStudent);
@@ -246,9 +242,6 @@ class Students extends React.Component {
 
         }
     }
-
-
-
 
 
     retrieveCohorts = async () => {
@@ -355,13 +348,13 @@ class Students extends React.Component {
         } else if (this.props.auth.rights === "Student") {
             this.props.history.push(process.env.PUBLIC_URL);
         }
-
+        
         return (
-            <main>
+            <article>
                 <header>
                     <AppNavbar mobile={this.state.windowState === "mobile"} />
                 </header>
-                <article id="studentRecordManagement">
+                <main id="studentRecordManagement">
                     <h2 className="titleDate">
                         Student record management
                     </h2>
@@ -391,7 +384,6 @@ class Students extends React.Component {
 
                     <section id="inputAddStudents">
                         <Button id="addStudent" name="addStudent" color="info" onClick={() => this.toggleDialog("addStudent")} title="Add student to cohort"><i className="fas fa-user-plus"></i></Button>
-                        <Button id="addStudentsBulk" name="addStudentsBulk" onClick={() => this.toggleDialog("addStudent")} title="Bulk add students to cohort"><i className="fas fa-users"></i></Button>
                         <Modal id="dialogAddStudent" isOpen={this.state.dialogs.dialogAddStudent} toggle={() => this.toggleDialog("addStudent")}>
                             <ModalHeader toggle={() => this.toggleDialog("addStudent")}>Add Student</ModalHeader>
                             <ModalBody>
@@ -428,7 +420,7 @@ class Students extends React.Component {
                                 </Alert>
                             </ModalBody>
                             <ModalFooter>
-                                <Button color="info" onClick={() => { this.addStudent(); }}>Add Student</Button>{' '}
+                                <Button color="info" onClick={() => { this.addStudent(); }} disabled={this.state.newStudent.invalidSub}>Add Student</Button>{' '}
                                 <Button onClick={() => { this.toggleDialog("addStudent") ; this.clearStudentInputs("addStudent") }}>Cancel</Button>
                             </ModalFooter>
                         </Modal>
@@ -454,7 +446,7 @@ class Students extends React.Component {
                                     <FormGroup>
                                         <Label for="studentEmail">Email</Label>
                                         <Input type="email" name="studentEmail" id="studentModEmail" value={this.state.activeStudent.email ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.activeStudent.emailInvalid} />
-                                        <FormFeedback>Email address must be unique - a user with this email address already exists.</FormFeedback>
+                                        <FormFeedback>Email address must be valid.</FormFeedback>
                                     </FormGroup>
 
                                     <FormGroup>
@@ -482,8 +474,8 @@ class Students extends React.Component {
 
                         <StudentsTable studentData={this.state.studentData} mobile={this.state.windowState === "mobile"} role={this.props.auth?.rights} func={this.tableFunctions} />
                     </section>
-                </article>
-            </main>
+                </main>
+            </article>
         );
     }
 }

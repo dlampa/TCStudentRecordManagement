@@ -24,7 +24,14 @@ namespace TCStudentRecordManagement.Models
         [Required]
         public DateTime Date { get; set; }
 
-        // TODO: Introduce precision
+        [Column("StartTime", TypeName = "time")]
+        [Required]
+        public TimeSpan StartTime { get; set; }
+
+        [Column("EndTime", TypeName = "time")]
+        [Required]
+        public TimeSpan EndTime { get; set; }
+
         [Column("TimeAllocation", TypeName = "decimal(3,2)")]
         [Required]
         public decimal TimeAllocation { get; set; }

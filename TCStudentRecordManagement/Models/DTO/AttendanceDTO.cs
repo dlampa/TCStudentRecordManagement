@@ -30,9 +30,9 @@ namespace TCStudentRecordManagement.Models.DTO
             Comment = inputAttendance.Comment;
         }
 
-        
-
     }
+
+
     /// <summary>
     /// AttendanceModDTO class is used to encapsulate mutable properties for Attendance objects (records)
     /// </summary>

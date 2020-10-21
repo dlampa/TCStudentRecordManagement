@@ -61,7 +61,7 @@ namespace TCStudentRecordManagement
             }
 
             // Log destination.
-            // TODO reverse to default with console log being an option in the final version
+            // Reverse to default with console log being an option when deploying, see below
             if (options.LogFile != null)
             {
                 LogConfig.WriteTo.File(options.LogFile.FullName);
@@ -72,23 +72,27 @@ namespace TCStudentRecordManagement
             }
 
             // Check if Super Admin is to be added to the DB
-            if (options.CreateAdmin != string.Empty)
+            if (options.CreateAdmin != null)
             {
                 // Initialize the logger for the Super Admin addition 'session'
-                //Log.Logger = LogConfig.CreateLogger();
-                //CreateSuperAdmin(options.CreateAdmin);
+                Log.Logger = LogConfig.CreateLogger();
+                CreateSuperAdmin(options.CreateAdmin);
             }
 
-            // TODO See above - reverse for file logging being default
-            // if (options.Console)
+            // See above - comment out for development environment
+            /*if (options.Console != null)
+            {
+                LogConfig.WriteTo.Console(theme: AnsiConsoleTheme.Code);
+            }
+            else
+            {
+                LogConfig.WriteTo.File(options.LogFile.FullName);
+            }
+            */
 
             // Show TECHCareers logo
             Logo.printLogo();
-            Console.WriteLine("TECHCareers Student Record Management API\n");
-
-            // Copyright from assembly info
-            // Ref: https://stackoverflow.com/a/19384288/12802214
-            // Console.WriteLine("(C) " + ((AssemblyCopyrightAttribute)typeof(Program).Assembly.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), true)[0]).Copyright);
+            Console.WriteLine("myTECHCareers Student Record Management API Server\n");
 
             // Initialize the logger for normal operation
             Log.Logger = LogConfig.CreateLogger();
@@ -128,8 +132,6 @@ namespace TCStudentRecordManagement
 
         internal static void CreateSuperAdmin(string paramEmail)
         {
-            // TODO: Email address validation check!!
-
 
             // Create a local IConfigurationRoot object to read data from appsettings.json and secrets.json associated with the project
             // Ref: https://stackoverflow.com/a/41738816/12802214
@@ -221,9 +223,6 @@ namespace TCStudentRecordManagement
 
     }
 
-
-
-
     // Command line options class
     // Ref: https://github.com/commandlineparser/commandline
 
@@ -234,6 +233,9 @@ namespace TCStudentRecordManagement
 
         [Option('f', "logfile", Default = null, Required = false, HelpText = "Route log output to the specified file")]
         public FileInfo LogFile { get; set; }
+
+        [Option('c', "console", Default = false, Required = false, HelpText = "Route log output to the console")]
+        public bool Console { get; set; }
 
         [Option("sslport", Default = 5001, Required = false, HelpText = "Listen on the specified port using SSL. Specify 0 to disable")]
         public int SSLPort { get; set; }

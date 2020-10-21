@@ -16,9 +16,9 @@ using TCStudentRecordManagement.Utils;
 
 namespace TCStudentRecordManagement.Controllers
 {
-    [Authorize(Policy = "StaffMember")]
-    [Route("/cohorts")]
     [ApiController]
+    [Route("[controller]")]
+    [Authorize]
     public class CohortsController : ControllerBase
     {
         private readonly DataContext _context;
@@ -28,7 +28,10 @@ namespace TCStudentRecordManagement.Controllers
             _context = context;
         }
 
-        // GET: All Cohorts [NO BLL] [Return DTO]
+        /// <summary>
+        /// Get a list of Cohorts from the database
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("list")]
         public async Task<ActionResult<IEnumerable<CohortDTO>>> List()
         {
@@ -38,11 +41,14 @@ namespace TCStudentRecordManagement.Controllers
             cohortData.ForEach(x => result.Add(new CohortDTO(x)));
 
             // Log to debug log
-            Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [LIST]", Serilog.Events.LogEventLevel.Debug);
+            Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
             return result;
-        }
+        } // End of List
 
-        // GET: All Active Cohorts [NO BLL] [Return DTO]
+        /// <summary>
+        /// Lists active cohorts in the database
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("listactive")]
         public async Task<ActionResult<IEnumerable<CohortDTO>>> ListActive()
         {
@@ -52,11 +58,15 @@ namespace TCStudentRecordManagement.Controllers
             cohortData.ForEach(x => result.Add(new CohortDTO(x)));
 
             // Log to debug log
-            Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [LIST] Active", Serilog.Events.LogEventLevel.Debug);
+            Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [LIST] Active", Serilog.Events.LogEventLevel.Debug);
             return result;
-        }
+        } // End of ListActive
 
-        // GET: Cohort by CohortID [NO BLL] [Return DTO]
+        /// <summary>
+        /// Gets a Cohort record from the database based on id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("get")]
         public async Task<ActionResult<CohortDTO>> Get(int id)
         {
@@ -72,24 +82,30 @@ namespace TCStudentRecordManagement.Controllers
                 CohortDTO result = new CohortDTO(cohort);
 
                 // Log to debug log
-                Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [GET] CohortID: {id}", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [GET] CohortID: {id}", Serilog.Events.LogEventLevel.Debug);
                 return result;
             }
-        }
+        } // End of Get
 
-        // PUT: Add Cohort [CohortBLL] [Return DTO]
-
-        // Using PUT for addition methods as PUT implies that resource will only be added once.
-        // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
+        /// <summary>
+        /// Create a Cohort record in the database
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="startDate"></param>
+        /// <param name="endDate"></param>
+        /// <returns></returns>
         [HttpPut("add")]
         [Authorize(Policy = "StaffMember")]
-        public async Task<ActionResult> AddCohort_Target(string name, DateTime startDate, DateTime endDate)
+        public async Task<ActionResult> AddCohort(string name, DateTime startDate, DateTime endDate)
         {
+            // Using PUT for addition methods as PUT implies that resource will only be added once.
+            // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
+
             // This will by default check if there is Authorization to execute. If there isn't an authorization, then API server automatically
             // returns 401 response.
 
             // Call BLL Cohort Add method with all the parameters
-            object BLLResponse = new CohortBLL(_context).AddCohort(name: name, startDate: startDate, endDate: endDate);
+            object BLLResponse = new CohortBLL(_context).AddCohortBLL(name: name, startDate: startDate, endDate: endDate);
 
             // Get the base class for the response
             // Ref: https://docs.microsoft.com/en-us/dotnet/api/system.type.basetype?view=netcore-3.1
@@ -106,8 +122,10 @@ namespace TCStudentRecordManagement.Controllers
                 try
                 {
                     _context.Cohorts.Add((Cohort)BLLResponse);
+
                     await _context.SaveChangesAsync();
-                    Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ADD] '{name}' successful", Serilog.Events.LogEventLevel.Information);
+
+                    Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [ADD] '{name}' successful", Serilog.Events.LogEventLevel.Information);
                     CohortDTO response = new CohortDTO((Cohort)BLLResponse);
                     return Ok(response);
                 }
@@ -121,19 +139,23 @@ namespace TCStudentRecordManagement.Controllers
                 }
             }
 
-        }
+        } // End of AddCohort
 
-        // PUT: Modify Cohort [CohortBLL] [Return DTO]
+        /// <summary>
+        /// Modify a Cohort record in the database
+        /// </summary>
+        /// <param name="cohort"></param>
+        /// <returns></returns>
         [HttpPut("modify")]
         [Authorize(Policy = "StaffMember")]
-        public async Task<ActionResult> ModifyCohort_Target([FromBody] CohortDTO cohort)
+        public async Task<ActionResult> ModifyCohort([FromBody] CohortDTO cohort)
         {
 
             if (CohortExists(cohort.CohortID))
             {
 
                 // Call BLL Cohort Add method with all the parameters
-                object BLLResponse = new CohortBLL(_context).ModifyCohort(cohort: cohort);
+                object BLLResponse = new CohortBLL(_context).ModifyCohortBLL(cohort: cohort);
 
                 // Get the base class for the response
                 // Ref: https://docs.microsoft.com/en-us/dotnet/api/system.type.basetype?view=netcore-3.1
@@ -160,7 +182,7 @@ namespace TCStudentRecordManagement.Controllers
                         // Save changes
                         await _context.SaveChangesAsync();
 
-                        Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [MODIFY] CohortID: {cohort.CohortID} successful", Serilog.Events.LogEventLevel.Information);
+                        Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [MODIFY] CohortID: {currentRecord.CohortID} successful", Serilog.Events.LogEventLevel.Information);
 
                         // Return modified record as a DTO
                         CohortDTO response = new CohortDTO(currentRecord);
@@ -180,9 +202,13 @@ namespace TCStudentRecordManagement.Controllers
             {
                 return NotFound();
             }
-        } // End of ModifyCohort_Target
+        } // End of ModifyCohort
 
-        // DELETE: Delete Cohort [NO BLL] [Return STATUS]
+        /// <summary>
+        /// Delete a Cohort Record from the database. Available only to SuperAdmin
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("delete")]
         [Authorize(Policy = "SuperAdmin")]
         public async Task<ActionResult> Delete(int id)
@@ -192,7 +218,7 @@ namespace TCStudentRecordManagement.Controllers
 
             if (cohort == null)
             {
-                Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] CohortID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [DELETE] CohortID: {id} not found", Serilog.Events.LogEventLevel.Debug);
                 return NotFound();
             }
 
@@ -201,7 +227,7 @@ namespace TCStudentRecordManagement.Controllers
                 _context.Cohorts.Remove(cohort);
                 await _context.SaveChangesAsync();
 
-                Logger.Msg<CohortsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] CohortID: {id} success", Serilog.Events.LogEventLevel.Information);
+                Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [DELETE] CohortID: {id} success", Serilog.Events.LogEventLevel.Information);
                 return Ok(new CohortDTO(cohort));
             }
             catch (Exception ex)
@@ -213,8 +239,13 @@ namespace TCStudentRecordManagement.Controllers
                 return StatusCode(500, new { errors = "Database update failed. Perhaps there are students in this cohort?" });
             }
 
-        }
+        } // End of Delete
 
+        /// <summary>
+        /// Checks for existence of Cohort record in the database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private bool CohortExists(int id)
         {
             return _context.Cohorts.Any(e => e.CohortID == id);

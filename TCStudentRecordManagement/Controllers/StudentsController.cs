@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Utils;
@@ -11,14 +10,13 @@ using TCStudentRecordManagement.Models;
 using TCStudentRecordManagement.Controllers.Exceptions;
 using TCStudentRecordManagement.Models.DTO;
 using TCStudentRecordManagement.Controllers.BLL;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Security.Claims;
 
 namespace TCStudentRecordManagement.Controllers
 {
-    [Route("/students")]
-    [Authorize(Policy = "StaffMember")]
     [ApiController]
+    [Route("[controller]")]
+    [Authorize(Policy = "StaffMember")]
     public class StudentsController : ControllerBase
     {
         private readonly DataContext _context;
@@ -28,7 +26,10 @@ namespace TCStudentRecordManagement.Controllers
             _context = context;
         }
 
-        // GET: All Students [NO BLL] [Return DTO]
+        /// <summary>
+        /// Get basic student records from the database. Returns all students.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("list")]
         public async Task<ActionResult<IEnumerable<StudentDTO>>> List()
         {
@@ -38,7 +39,7 @@ namespace TCStudentRecordManagement.Controllers
             studentData.ForEach(x => result.Add(new StudentDTO(x)));
 
             // Log to debug log
-            Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [LIST]", Serilog.Events.LogEventLevel.Debug);
+            Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
             return result;
 
         } // End of List
@@ -72,7 +73,7 @@ namespace TCStudentRecordManagement.Controllers
 
                     // Retrieve data
                     List<Student> studentData = await _context.Students.Where(x => x.CohortID == BLLCohortID).Include(student => student.CohortMember).Include(student => student.UserData).ToListAsync();
-                    
+
                     // Convert Student to StudentDetailDTO
                     List<StudentDetailDTO> result = new List<StudentDetailDTO>();
                     studentData.ForEach(x => result.Add(new StudentDetailDTO(x)));
@@ -93,7 +94,11 @@ namespace TCStudentRecordManagement.Controllers
 
         } // End of Details
 
-        // GET: Specific Student based on StudentID [NO BLL] [Return DTO]
+        /// <summary>
+        /// Return Student record based on StudentID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("get")]
         public async Task<ActionResult<StudentDTO>> GetStudent(int id)
         {
@@ -109,21 +114,30 @@ namespace TCStudentRecordManagement.Controllers
                 StudentDTO result = new StudentDTO(student);
 
                 // Log to debug log
-                Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [GET] UserID: {id}", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [GET] UserID: {id}", Serilog.Events.LogEventLevel.Debug);
                 return result;
             }
-        }
+        } // End of GetStudent
 
-        // PUT: Add Student [StudentBLL] [Return DTO]
+        /// <summary>
+        /// Add a Student record to the database
+        /// </summary>
+        /// <param name="firstname"></param>
+        /// <param name="lastname"></param>
+        /// <param name="email"></param>
+        /// <param name="active"></param>
+        /// <param name="cohortID"></param>
+        /// <param name="bearTracksID"></param>
+        /// <returns></returns>
 
         [HttpPut("add")]
-        public async Task<ActionResult> AddStudent_Target(string firstname, string lastname, string email, bool active, int cohortID, string bearTracksID)
+        public async Task<ActionResult> AddStudent(string firstname, string lastname, string email, bool active, int cohortID, string bearTracksID)
         {
             // Figure out if the user is a Super Admin (important for override on active cohort)
             bool isSuperAdmin = User.Claims.Any(x => x.Type == System.Security.Claims.ClaimTypes.Role && x.Value == "SuperAdmin");
 
             // Call BLL Student Add method with all the parameters
-            object BLLResponse = new StudentBLL(_context).AddStudent(firstname: firstname, lastname: lastname, email: email, active: active, cohortID: cohortID, bearTracksID: bearTracksID, userIsSuperAdmin: isSuperAdmin);
+            object BLLResponse = new StudentBLL(_context).AddStudentBLL(firstname: firstname, lastname: lastname, email: email, active: active, cohortID: cohortID, bearTracksID: bearTracksID, userIsSuperAdmin: isSuperAdmin);
 
             if (BLLResponse.GetType().BaseType == typeof(Exception))
             {
@@ -161,12 +175,12 @@ namespace TCStudentRecordManagement.Controllers
                     {
                         // User is already in the database
                         newStudentUserID = _context.Users.Where(x => x.Email == BLLResponseDic["Email"].ToString()).First().UserID;
-                        Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ADD] student '{BLLResponseDic["Email"].ToString()}' already in user table", Serilog.Events.LogEventLevel.Warning);
+                        Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [ADD] student '{BLLResponseDic["Email"].ToString()}' already in user table", Serilog.Events.LogEventLevel.Warning);
                     }
 
                     // Create the Student record
                     Student newStudent = new Student
-                    { 
+                    {
                         UserID = newStudentUserID,
                         CohortID = (int)BLLResponseDic["CohortID"],
                         BearTracksID = BLLResponseDic["BearTracksID"]?.ToString()
@@ -176,7 +190,7 @@ namespace TCStudentRecordManagement.Controllers
                     _context.Students.Add(newStudent);
                     await _context.SaveChangesAsync();
 
-                    Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ADD] student '{BLLResponseDic["Email"].ToString()}' successful", Serilog.Events.LogEventLevel.Information);
+                    Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [ADD] student '{BLLResponseDic["Email"].ToString()}' successful", Serilog.Events.LogEventLevel.Information);
                     StudentDetailDTO response = new StudentDetailDTO(newStudent);
                     return Ok(response);
                 }
@@ -190,20 +204,23 @@ namespace TCStudentRecordManagement.Controllers
                 }
             }
 
-        }
+        } // End of AddStudent
 
-        // PUT: Modify Student [StudentBLL] [Return DTO]
-
+        /// <summary>
+        /// Modify a Student record in the database
+        /// </summary>
+        /// <param name="student"></param>
+        /// <returns></returns>
         [HttpPut("modify")]
-        public async Task<ActionResult> ModifyStudent_Target(StudentModDTO student)
+        public async Task<ActionResult> ModifyStudent(StudentModDTO student)
         {
             if (StudentExists(student.StudentID))
             {
                 // Figure out if the user is a Super Admin (important for override on active cohort)
                 bool isSuperAdmin = User.Claims.Any(x => x.Type == System.Security.Claims.ClaimTypes.Role && x.Value == "SuperAdmin");
 
-                // Call BLL Student Add method with all the parameters
-                object BLLResponse = new StudentBLL(_context).ModifyStudent(student: student, userIsSuperAdmin: isSuperAdmin);
+                // Call BLL Student Modify method with all the parameters
+                object BLLResponse = new StudentBLL(_context).ModifyStudentBLL(student: student, userIsSuperAdmin: isSuperAdmin);
 
                 if (BLLResponse.GetType().BaseType == typeof(Exception))
                 {
@@ -228,14 +245,14 @@ namespace TCStudentRecordManagement.Controllers
                         User userRecord = _context.Users.Where(x => x.UserID == studentUserID).First();
 
                         userRecord.Firstname = modifiedStudentData.Firstname;
-                        userRecord.Lastname= modifiedStudentData.Lastname;
+                        userRecord.Lastname = modifiedStudentData.Lastname;
                         userRecord.Email = modifiedStudentData.Email;
                         userRecord.Active = modifiedStudentData.Active;
 
                         // Save changes
                         await _context.SaveChangesAsync();
 
-                        // Modify StudentID record
+                        // Modify Student record
                         Student studentRecord = _context.Students.Where(x => x.StudentID == modifiedStudentData.StudentID).First();
 
                         studentRecord.CohortID = modifiedStudentData.CohortID;
@@ -244,7 +261,7 @@ namespace TCStudentRecordManagement.Controllers
                         // Save changes
                         await _context.SaveChangesAsync();
 
-                        Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [MODIFY] student '{modifiedStudentData.Email}' successful", Serilog.Events.LogEventLevel.Information);
+                        Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [MODIFY] student '{modifiedStudentData.Email}' successful", Serilog.Events.LogEventLevel.Information);
                         StudentDTO response = new StudentDTO(studentRecord);
                         return Ok(response);
                     }
@@ -263,9 +280,14 @@ namespace TCStudentRecordManagement.Controllers
                 return NotFound();
             }
 
-        } // End of ModifyStudent_Target
+        } // End of ModifyStudent
 
-        // PUT: Activate/Deactivate Student [NO BLL] [Return DTO]
+        /// <summary>
+        /// Activate/Deactivate a Student
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         [HttpPut("active")]
         public async Task<ActionResult> ChangeActiveState(int id, bool state)
         {
@@ -273,7 +295,7 @@ namespace TCStudentRecordManagement.Controllers
 
             if (student == null)
             {
-                Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ACTIVE] StudentID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [ACTIVE] StudentID: {id} not found", Serilog.Events.LogEventLevel.Debug);
                 return NotFound();
             }
 
@@ -288,12 +310,11 @@ namespace TCStudentRecordManagement.Controllers
                 // Save to DB
                 await _context.SaveChangesAsync();
 
-                Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [ACTIVE] StudentID: {id} {(state ? "activated": "deactivated")}", Serilog.Events.LogEventLevel.Information);
+                Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [ACTIVE] StudentID: {id} {(state ? "activated" : "deactivated")}", Serilog.Events.LogEventLevel.Information);
                 return Ok(new UserDTO(userData));
             }
             catch (Exception ex)
             {
-                // Probably due to FK violation
                 Logger.Msg<StudentsController>($"[ACTIVE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
 
                 // Return response to client
@@ -302,8 +323,11 @@ namespace TCStudentRecordManagement.Controllers
 
         }// End of ChangeActiveState
 
-        
-        // DELETE: Delete Student [NO BLL] [Return STATUS] [SuperAdmin]
+        /// <summary>
+        /// Delete a Student Record from the database. Requires SuperAdmin authorization level
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("delete")]
         [Authorize(Policy = "SuperAdmin")]
         public async Task<ActionResult> Delete(int id)
@@ -313,7 +337,7 @@ namespace TCStudentRecordManagement.Controllers
 
             if (student == null)
             {
-                Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] StudentID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [DELETE] StudentID: {id} not found", Serilog.Events.LogEventLevel.Debug);
                 return NotFound();
             }
 
@@ -323,7 +347,7 @@ namespace TCStudentRecordManagement.Controllers
                 _context.Students.Remove(student);
                 await _context.SaveChangesAsync();
 
-                Logger.Msg<StudentsController>($"[{User.Claims.Where(x => x.Type == "email").FirstOrDefault().Value}] [DELETE] StudentID: {id} success", Serilog.Events.LogEventLevel.Information);
+                Logger.Msg<StudentsController>($"[{User.FindFirstValue("email")}] [DELETE] StudentID: {id} success", Serilog.Events.LogEventLevel.Information);
                 return Ok(new StudentDTO(student));
             }
             catch (Exception ex)
@@ -336,11 +360,17 @@ namespace TCStudentRecordManagement.Controllers
             }
 
         } // End of Delete
-    private bool StudentExists(int id)
-    {
-        return _context.Students.Any(e => e.StudentID == id);
-    }
 
-    } 
+        /// <summary>
+        /// Checks for existence of Student record in the database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private bool StudentExists(int id)
+        {
+            return _context.Students.Any(e => e.StudentID == id);
+        }
+
+    }
 
 }

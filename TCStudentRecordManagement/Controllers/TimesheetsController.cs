@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Controllers.BLL;
@@ -25,6 +24,7 @@ namespace TCStudentRecordManagement.Controllers
         public TimesheetsController(DataContext context)
         {
             _context = context;
+            
         }
 
         [HttpGet("get")]
@@ -77,7 +77,6 @@ namespace TCStudentRecordManagement.Controllers
             }
         }// End of Get
         
-
         /// <summary>
         /// Add a new Timesheet record to the Timesheets table
         /// </summary>
@@ -109,6 +108,8 @@ namespace TCStudentRecordManagement.Controllers
                         StudentID = newTimesheetDTO.StudentID,
                         AssignmentID = newTimesheetDTO.AssignmentID,
                         Date = newTimesheetDTO.Date,
+                        StartTime = newTimesheetDTO.StartTime,
+                        EndTime = newTimesheetDTO.EndTime,
                         TimeAllocation = newTimesheetDTO.TimeAllocation
                     };
 
@@ -165,6 +166,8 @@ namespace TCStudentRecordManagement.Controllers
 
                         // Modify the record
                         currentRecord.AssignmentID = modTimesheet.AssignmentID;
+                        currentRecord.StartTime = modTimesheet.StartTime;
+                        currentRecord.EndTime = modTimesheet.EndTime;
                         currentRecord.TimeAllocation = modTimesheet.TimeAllocation;
 
                         // Save changes
@@ -242,8 +245,6 @@ namespace TCStudentRecordManagement.Controllers
             }
 
         } // End of Delete
-
-
 
         /// <summary>
         /// Checks for existence of Timesheet records in the database

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using TCStudentRecordManagement.Models.DTO;
 using TCStudentRecordManagement.Controllers.Exceptions;
 using TCStudentRecordManagement.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace TCStudentRecordManagement.Controllers.BLL
 {
@@ -18,7 +19,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
         }
 
         /// <summary>
-        /// Business logic for listing Student records
+        /// Business logic for detailed Student records
         /// </summary>
         /// <param name="cohortID"></param>
         /// <returns></returns>
@@ -59,7 +60,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
         /// <param name="bearTracksID"></param>
         /// <param name="userIsSuperAdmin"></param>
         /// <returns></returns>
-        internal object AddStudent(string firstname, string lastname, string email, bool active, int cohortID, string bearTracksID, bool userIsSuperAdmin)
+        internal object AddStudentBLL(string firstname, string lastname, string email, bool active, int cohortID, string bearTracksID, bool userIsSuperAdmin)
         {
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
@@ -117,7 +118,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
         /// <param name="student"></param>
         /// <param name="userIsSuperAdmin"></param>
         /// <returns></returns>
-        internal object ModifyStudent(StudentModDTO student, bool userIsSuperAdmin)
+        internal object ModifyStudentBLL(StudentModDTO student, bool userIsSuperAdmin)
         {
             // Create a new APIException object to store possible exceptions as checks are performed. 
             APIException exceptionList = new APIException();
@@ -131,7 +132,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
                 { "firstname parameter cannot be empty.", student.Firstname == null || student.Firstname.Trim() == string.Empty },
                 { "lastname parameter cannot be empty", student.Lastname == null || student.Lastname.Trim() == string.Empty },
                 { "Email needs to be a valid email address", student.Email == null || !Regex.IsMatch(student.Email, @"^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$") },
-                { "Email address needs to be unique in the database (student record already exists)", student.Email != null && !(_context.Users.Any(x => x.Email == student.Email) && _context.Students.Any(x => x.UserID != _context.Users.Where(y => y.Email == student.Email).First().UserID)) },
+                { "Email address needs to be unique in the database (student record with that email already exists)", student.Email != null && _context.Users.Where(x => x.Email == student.Email).Include(student => student.StudentData).Any(x => x.StudentData.StudentID != student.StudentID) },
                 { "Email address domain not found in the list of valid domains", student.Email != null && !APIConfig.Configuration.GetSection("ValidEmailDomains").GetChildren().ToArray().Select(x => x.Value).ToArray().Contains(student.Email.Split("@")?[1]??"") },
                 { "Specified CohortID does not exist", !_context.Cohorts.Any(x => x.CohortID == student.CohortID) },
                 { "Specified cohort is inactive.", !(_context.Cohorts.Any(x => x.CohortID == student.CohortID && DateTime.Now >= x.StartDate && DateTime.Now <= x.EndDate) || userIsSuperAdmin) }

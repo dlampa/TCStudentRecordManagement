@@ -19,8 +19,8 @@ class TimesheetTable extends React.Component {
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th hidden={this.props.mobile}>Start time</th>
-                            <th hidden={this.props.mobile}>End time</th>
+                            <th>Start time</th>
+                            <th>End time</th>
                             <th>Activity</th>
                             <th>Duration (h)</th>
                             <th>Actions</th>
@@ -31,8 +31,8 @@ class TimesheetTable extends React.Component {
                             return (
                                 <tr key={row.recordID}>
                                     <td>{index}</td>
-                                    <td hidden={this.props.mobile}>{row?.startTime}</td>
-                                    <td hidden={this.props.mobile}>{row?.endTime}</td>
+                                    <td>{row?.startTime}</td>
+                                    <td>{row?.endTime}</td>
                                     <td key={row?.taskID}>{
                                         this.props?.taskData?.map(taskObject => {
                                             return (taskObject.taskID === row.assignmentID) ? taskObject.title : null

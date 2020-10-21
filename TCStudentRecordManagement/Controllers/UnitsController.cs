@@ -43,7 +43,7 @@ namespace TCStudentRecordManagement.Controllers
             Logger.Msg<UnitsController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
             return result;
 
-        }
+        } // End of List
 
         /// <summary>
         /// Add a learning Unit record
@@ -92,7 +92,7 @@ namespace TCStudentRecordManagement.Controllers
                 }
             }
 
-        }
+        } // End of AddUnit
 
         /// <summary>
         /// Modify an existing Unit record
@@ -159,7 +159,7 @@ namespace TCStudentRecordManagement.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("delete")]
-        [Authorize(Policy = "SuperAdmin")]
+        [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> Delete(int id)
         {
             // Find existing Unit record in DB
@@ -188,8 +188,13 @@ namespace TCStudentRecordManagement.Controllers
                 return StatusCode(500, new { errors = "Database update failed." });
             }
 
-        }
+        }// End of Delete
 
+        /// <summary>
+        /// Checks for existence of Unit records in the database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private bool UnitExists(int id)
         {
             return _context.Units.Any(e => e.UnitID == id);

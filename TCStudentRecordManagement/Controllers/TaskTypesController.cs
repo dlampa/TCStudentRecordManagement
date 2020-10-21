@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TCStudentRecordManagement.Controllers.BLL;
@@ -44,7 +43,7 @@ namespace TCStudentRecordManagement.Controllers
             Logger.Msg<TaskTypesController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
             return result;
 
-        }
+        } // End of List
 
         /// <summary>
         /// Add a TaskType record
@@ -95,7 +94,7 @@ namespace TCStudentRecordManagement.Controllers
                 }
             }
 
-        }
+        } // End of AddTaskType
 
         /// <summary>
         /// Modify an existing TaskType record
@@ -163,7 +162,7 @@ namespace TCStudentRecordManagement.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("delete")]
-        [Authorize(Policy = "SuperAdmin")]
+        [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> Delete(int id)
         {
             // Find existing TaskType record in DB
@@ -192,8 +191,13 @@ namespace TCStudentRecordManagement.Controllers
                 return StatusCode(500, new { errors = "Database update failed." });
             }
 
-        }
+        } // End of Delete
 
+        /// <summary>
+        /// Checks for existence of TaskType records in the database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private bool TaskTypeExists(int id)
         {
             return _context.TaskTypes.Any(e => e.TypeID == id);
