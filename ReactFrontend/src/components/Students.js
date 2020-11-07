@@ -197,6 +197,8 @@ class Students extends React.Component {
                 // Reset input fields
                 await this.clearStudentInputs("newStudent");
 
+                await this.retrieveStudents();
+
             } else {
                 // Commit error messages to state
                 await this.setState({ status: response?.errResponse?.errors || response?.errResponse?.message });
@@ -404,7 +406,7 @@ class Students extends React.Component {
                                     <FormGroup>
                                         <Label for="studentEmail">Email:</Label>
                                         <Input type="email" name="studentEmail" id="studentEmail" value={this.state.newStudent.email ?? ""} onChange={(event) => this.inputChange(event)} invalid={this.state.newStudent.emailInvalid} />
-                                        <FormFeedback>Email address must be unique - a user with this email address already exists.</FormFeedback>
+                                        <FormFeedback>Email address must be in a valid format.</FormFeedback>
                                     </FormGroup>
 
                                     <FormGroup>

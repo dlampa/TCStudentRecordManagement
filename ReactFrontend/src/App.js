@@ -34,7 +34,6 @@ class App extends React.Component {
               isSignedIn={true}
               uxMode={'redirect'}
               cookiePolicy={'single_host_origin'} />
-            {this.state.errors.map((error, index) => <Alert color="danger" key={index}>{error}</Alert>)}
           </div>
         </main>
       );
