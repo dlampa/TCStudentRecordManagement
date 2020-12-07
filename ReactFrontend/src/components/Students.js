@@ -67,6 +67,8 @@ class Students extends React.Component {
 
         // Select first cohort from the list after cohortData load
         if (this.state.cohortData !== prevState.cohortData) {
+            // Add a check to see if the activeCohortID is null and display
+            // TODO : https://github.com/dlampa/TCStudentRecordManagement/issues/1
             this.setState({ activeCohortID: Number(this.state?.cohortData[0].cohortID) || 0 });
         }
 

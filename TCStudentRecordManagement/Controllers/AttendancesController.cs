@@ -30,7 +30,7 @@ namespace TCStudentRecordManagement.Controllers
         /// Gets the Student attendance records based on StudentID. Students are limited to viewing their own records only.
         /// </summary>
         /// <returns></returns>
-        [HttpGet("get")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<Attendance>>> Get(int studentID, int attendanceStateID, DateTime startDate, DateTime endDate)
         {
             // Call GetAttendanceBLL method with all the parameters
@@ -85,7 +85,7 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="attendance">AttendanceDTO object containing the new attendance record</param>
         /// <returns></returns>
-        [HttpPut("add")]
+        [HttpPost]
         [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> AddAttendance([FromBody] AttendanceDTO attendance)
         {
@@ -139,7 +139,7 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="attendance">AttendanceModDTO object containing parameters for modification</param>
         /// <returns>API HTTPResponse with embedded AttendanceModDTO object or Exception()[]</returns>
-        [HttpPut("modify")]
+        [HttpPut]
         [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> ModifyAttendance([FromBody] AttendanceModDTO attendance)
         {
@@ -200,16 +200,16 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("delete")]
+        [HttpDelete]
         [Authorize(Policy = "SuperAdmin")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Delete(int recordID)
         {
             // Find existing Cohort record in DB
-            Attendance attendance = await _context.AttendanceRecords.FindAsync(id);
+            Attendance attendance = await _context.AttendanceRecords.FindAsync(recordID);
 
             if (attendance == null)
             {
-                Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [DELETE] RecordID: {id} not found", Serilog.Events.LogEventLevel.Debug);
+                Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [DELETE] RecordID: {recordID} not found", Serilog.Events.LogEventLevel.Debug);
                 return NotFound();
             }
 
@@ -218,7 +218,7 @@ namespace TCStudentRecordManagement.Controllers
                 _context.AttendanceRecords.Remove(attendance);
                 await _context.SaveChangesAsync();
 
-                Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [DELETE] RecordID: {id} success", Serilog.Events.LogEventLevel.Information);
+                Logger.Msg<AttendancesController>($"[{User.FindFirstValue("email")}] [DELETE] RecordID: {recordID} success", Serilog.Events.LogEventLevel.Information);
                 return Ok(new AttendanceDTO(attendance));
             }
             catch (Exception ex)
