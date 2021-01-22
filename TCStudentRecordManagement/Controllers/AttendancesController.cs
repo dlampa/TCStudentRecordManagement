@@ -27,7 +27,7 @@ namespace TCStudentRecordManagement.Controllers
         }
         
         /// <summary>
-        /// Gets the Student attendance records based on StudentID. Students are limited to viewing their own records only.
+        /// Gets the Student attendance records based on StudentID. Students are limited to viewing their own records only. [GET]
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -81,7 +81,7 @@ namespace TCStudentRecordManagement.Controllers
         } // End of Get
 
         /// <summary>
-        /// Add attendance record to the database.  Attendance record properties are read from the request body from a JSON representation of the AttendanceDTO object.
+        /// Add attendance record to the database.  Attendance record properties are read from the request body from a JSON representation of the AttendanceDTO object. [POST]
         /// </summary>
         /// <param name="attendance">AttendanceDTO object containing the new attendance record</param>
         /// <returns></returns>

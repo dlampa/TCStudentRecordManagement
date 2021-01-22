@@ -29,7 +29,7 @@ public class AttendanceStatesController : ControllerBase
     /// Get a list of all the records from the AttendanceState table
     /// </summary>
     /// <returns></returns>
-    [HttpGet("list")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<AttendanceStateDTO>>> List()
     {
         // Convert AttendanceState to AttendanceStateDTO
@@ -48,7 +48,7 @@ public class AttendanceStatesController : ControllerBase
     /// </summary>
     /// <param name="description"></param>
     /// <returns></returns>
-    [HttpPut("add")]
+    [HttpPost]
     [Authorize(Policy = "StaffMember")]
     public async Task<ActionResult> AddAttendanceState(string description)
     {
@@ -99,7 +99,7 @@ public class AttendanceStatesController : ControllerBase
     /// </summary>
     /// <param name="attendanceState"></param>
     /// <returns></returns>
-    [HttpPut("modify")]
+    [HttpPut]
     [Authorize(Policy = "StaffMember")]
     public async Task<ActionResult> ModifyAttendanceState([FromBody] AttendanceStateDTO attendanceState)
     {
@@ -159,7 +159,7 @@ public class AttendanceStatesController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpDelete("delete")]
+    [HttpDelete]
     [Authorize(Policy = "SuperAdmin")]
     public async Task<ActionResult> Delete(int id)
     {

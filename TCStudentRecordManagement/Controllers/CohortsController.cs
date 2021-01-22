@@ -29,78 +29,44 @@ namespace TCStudentRecordManagement.Controllers
         }
 
         /// <summary>
-        /// Get a list of Cohorts from the database
+        /// Get a list of Cohorts from the database [GET]
         /// </summary>
+        /// <param name="activeOnly"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<CohortDTO>>> List()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CohortDTO>>> List(bool activeOnly = false, int id = -1)
         {
             // Convert Cohort to CohortDTO
-            List<Cohort> cohortData = await _context.Cohorts.ToListAsync();
+            // If activeOnly is selected, return only active Cohorts
+            
+            List<Cohort> cohortData = activeOnly ? await _context.Cohorts.Where(x => DateTime.Now >= x.StartDate && DateTime.Now <= x.EndDate).ToListAsync() : await _context.Cohorts.ToListAsync();
+            
+            // Filter by id if selected
+            if (id > -1)
+            {
+                cohortData.Where(x => x.CohortID == id).ToList();
+            }
+
             List<CohortDTO> result = new List<CohortDTO>();
             cohortData.ForEach(x => result.Add(new CohortDTO(x)));
 
             // Log to debug log
-            Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
+            Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [LIST] {(activeOnly ? "active" : string.Empty)}{(id > -1 ? "CohortID: {id}" : string.Empty)}", Serilog.Events.LogEventLevel.Debug);
             return result;
         } // End of List
 
         /// <summary>
-        /// Lists active cohorts in the database
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("listactive")]
-        public async Task<ActionResult<IEnumerable<CohortDTO>>> ListActive()
-        {
-            // Convert Cohort to CohortDTO
-            List<Cohort> cohortData = await _context.Cohorts.Where(x => DateTime.Now >= x.StartDate && DateTime.Now <= x.EndDate).ToListAsync();
-            List<CohortDTO> result = new List<CohortDTO>();
-            cohortData.ForEach(x => result.Add(new CohortDTO(x)));
-
-            // Log to debug log
-            Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [LIST] Active", Serilog.Events.LogEventLevel.Debug);
-            return result;
-        } // End of ListActive
-
-        /// <summary>
-        /// Gets a Cohort record from the database based on id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpGet("get")]
-        public async Task<ActionResult<CohortDTO>> Get(int id)
-        {
-            Cohort cohort = await _context.Cohorts.FindAsync(id);
-
-            if (cohort == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                // Convert to DTO
-                CohortDTO result = new CohortDTO(cohort);
-
-                // Log to debug log
-                Logger.Msg<CohortsController>($"[{User.FindFirstValue("email")}] [GET] CohortID: {id}", Serilog.Events.LogEventLevel.Debug);
-                return result;
-            }
-        } // End of Get
-
-        /// <summary>
-        /// Create a Cohort record in the database
+        /// Create a Cohort record in the database [POST]
         /// </summary>
         /// <param name="name"></param>
         /// <param name="startDate"></param>
         /// <param name="endDate"></param>
         /// <returns></returns>
-        [HttpPut("add")]
+        [HttpPost]
         [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> AddCohort(string name, DateTime startDate, DateTime endDate)
         {
-            // Using PUT for addition methods as PUT implies that resource will only be added once.
-            // Ref: https://www.w3schools.com/tags/ref_httpmethods.asp
-
             // This will by default check if there is Authorization to execute. If there isn't an authorization, then API server automatically
             // returns 401 response.
 
