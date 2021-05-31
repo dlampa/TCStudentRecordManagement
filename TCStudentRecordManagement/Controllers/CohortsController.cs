@@ -112,7 +112,7 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="cohort"></param>
         /// <returns></returns>
-        [HttpPut("modify")]
+        [HttpPut]
         [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> ModifyCohort([FromBody] CohortDTO cohort)
         {
@@ -175,7 +175,7 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("delete")]
+        [HttpDelete]
         [Authorize(Policy = "SuperAdmin")]
         public async Task<ActionResult> Delete(int id)
         {

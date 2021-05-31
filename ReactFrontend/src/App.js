@@ -16,32 +16,36 @@ class App extends React.Component {
     super(props);
 
     this.state = {
+      loggedIn: false,      
       errors: []
     };
   }
 
   render() {
+    console.log(this.state);
     if (this.state.loggedIn === undefined || this.state.loggedIn === false) {
       return (
         <main className="App">
           <div>
             <h1>Welcome to myTECHCareers</h1>
-
             <GoogleLogin clientId="553228721119-dp1p9m24d2br2it12un57pep3gomtgp1.apps.googleusercontent.com"
               buttonText="Login using your UofA account"
               onSuccess={this.authUserWithAPI}
               onFailure={this.authFailedHandler}
               isSignedIn={true}
-              uxMode={'redirect'}
+              uxMode={'popup'} // redirect
               cookiePolicy={'single_host_origin'} />
           </div>
         </main>
       );
     } else {
+      var destination=this.props.auth.rights === "Student" ? "/timesheets" : "/students"
       return (
         <>
           <p>Please wait...</p>
-          {this.props.auth.rights == "Student" ? this.props.history.push(process.env.PUBLIC_URL + "/timesheets/") : this.props.history.push(process.env.PUBLIC_URL + "/students/") }
+          {// this.props.auth.rights == "Student" ? this.props.history.push(process.env.PUBLIC_URL + "/timesheets/") : this.props.history.push(process.env.PUBLIC_URL + "/students/") 
+          }
+          <Redirect push to={{ pathname: destination }} />
         </>
       );
     }
@@ -53,6 +57,8 @@ class App extends React.Component {
       const apiResponse = await axios.get("https://localhost:5001/auth/logon",
         { headers: { 'Authorization': `Bearer ${response.tokenId}` } });
       
+        console.log("Here");
+
       // Check response. If valid, receive user credential level and compare to what was received from Google
       if (apiResponse.status === 200) {
 

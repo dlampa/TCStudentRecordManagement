@@ -251,8 +251,12 @@ class Students extends React.Component {
     retrieveCohorts = async () => {
         if (this.props?.auth !== undefined) {
 
-            const response = await ax(process.env.REACT_APP_APIURL_COHORTS_LISTACTIVE, {}, this.props.auth.tokenID);
-
+            const response = await ax(process.env.REACT_APP_APIURL_COHORTS, {
+                params: {
+                    activeOnly: true
+                }
+            }, this.props.auth.tokenID);
+            console.log(response);
             if (response?.data !== undefined) {
                 await this.setState({ cohortData: response.data });
                 await this.setState({ status: [] });

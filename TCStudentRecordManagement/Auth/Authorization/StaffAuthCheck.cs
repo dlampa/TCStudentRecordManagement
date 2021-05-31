@@ -38,7 +38,9 @@ namespace TCStudentRecordManagement.Auth.Authorization
             }
 
             // Check if the user is a Staff group member or a Super Admin (Super Admin supercedes Staff rights, so it's acceptable)
-            if (context.User.Claims.Where(x => x.Type == System.Security.Claims.ClaimTypes.Role && (x.Value == "Staff" | x.Value == "SuperAdmin")).Count() == 1)
+            // if (context.User.Claims.Where(x => x.Type == System.Security.Claims.ClaimTypes.Role && (x.Value == "Staff" | x.Value == "SuperAdmin")).Count() == 1)
+            bool isStaffOrAdmin = context.User.Claims.Any(x => x.Type == ClaimTypes.Role && (x.Value == "Staff" | x.Value == "SuperAdmin"));
+            if (isStaffOrAdmin)
             {
                 // Return success
                 context.Succeed(requirement);

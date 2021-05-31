@@ -62,7 +62,7 @@ namespace TCStudentRecordManagement.Models
             modelBuilder.Entity<Staff>(entity =>
             {
                 // Foreign keys
-                entity.HasIndex(x => x.UserID).HasName($"FK_{nameof(Staff)}_{nameof(User)}");
+                entity.HasIndex(x => x.UserID).HasDatabaseName($"FK_{nameof(Staff)}_{nameof(User)}");
 
                 // Relationships
                 entity.HasOne(staff => staff.UserData)
@@ -80,8 +80,8 @@ namespace TCStudentRecordManagement.Models
             modelBuilder.Entity<Student>(entity =>
             {
                 // Foreign keys in the table
-                entity.HasIndex(x => x.UserID).HasName($"FK_{nameof(Student)}_{nameof(User)}");
-                entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Student)}_{nameof(Cohort)}");
+                entity.HasIndex(x => x.UserID).HasDatabaseName($"FK_{nameof(Student)}_{nameof(User)}");
+                entity.HasIndex(x => x.CohortID).HasDatabaseName($"FK_{nameof(Student)}_{nameof(Cohort)}");
 
                 // Relationships
                 entity.HasOne(student => student.UserData)
@@ -106,9 +106,9 @@ namespace TCStudentRecordManagement.Models
             modelBuilder.Entity<Task>(entity =>
             {
                 // Foreign keys
-                entity.HasIndex(x => x.UnitID).HasName($"FK_{nameof(Task)}_{nameof(Unit)}");
-                entity.HasIndex(x => x.TypeID).HasName($"FK_{nameof(Task)}_{nameof(TaskType)}");
-                entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Task)}_{nameof(Cohort)}");
+                entity.HasIndex(x => x.UnitID).HasDatabaseName($"FK_{nameof(Task)}_{nameof(Unit)}");
+                entity.HasIndex(x => x.TypeID).HasDatabaseName($"FK_{nameof(Task)}_{nameof(TaskType)}");
+                entity.HasIndex(x => x.CohortID).HasDatabaseName($"FK_{nameof(Task)}_{nameof(Cohort)}");
 
                 // Relationships
                 entity.HasOne(assignment => assignment.FromUnit)
@@ -137,8 +137,8 @@ namespace TCStudentRecordManagement.Models
             modelBuilder.Entity<Timesheet>(entity =>
             {
                 // Foreign keys
-                entity.HasIndex(x => x.StudentID).HasName($"FK_{nameof(Timesheet)}_{nameof(Student)}");
-                entity.HasIndex(x => x.AssignmentID).HasName($"FK_{nameof(Timesheet)}_{nameof(Task)}");
+                entity.HasIndex(x => x.StudentID).HasDatabaseName($"FK_{nameof(Timesheet)}_{nameof(Student)}");
+                entity.HasIndex(x => x.AssignmentID).HasDatabaseName($"FK_{nameof(Timesheet)}_{nameof(Task)}");
 
                 // Relationships
                 entity.HasOne(timesheet => timesheet.ForStudent)
@@ -167,9 +167,9 @@ namespace TCStudentRecordManagement.Models
             modelBuilder.Entity<Attendance>(entity =>
             {
                 // Foreign keys
-                entity.HasIndex(x => x.AttendanceStateID).HasName($"FK_{nameof(Attendance)}_{nameof(AttendanceState)}");
-                entity.HasIndex(x => x.StaffID).HasName($"FK_{nameof(Attendance)}_{nameof(Staff)}");
-                entity.HasIndex(x => x.StudentID).HasName($"FK_{nameof(Attendance)}_{nameof(Student)}");
+                entity.HasIndex(x => x.AttendanceStateID).HasDatabaseName($"FK_{nameof(Attendance)}_{nameof(AttendanceState)}");
+                entity.HasIndex(x => x.StaffID).HasDatabaseName($"FK_{nameof(Attendance)}_{nameof(Staff)}");
+                entity.HasIndex(x => x.StudentID).HasDatabaseName($"FK_{nameof(Attendance)}_{nameof(Student)}");
 
                 // Relationships
                 entity.HasOne(attendance => attendance.AttendanceType)
@@ -197,8 +197,8 @@ namespace TCStudentRecordManagement.Models
             modelBuilder.Entity<Notice>(entity =>
             {
                 // Foreign keys
-                entity.HasIndex(x => x.StaffID).HasName($"FK_{nameof(Notice)}_{nameof(Staff)}");
-                entity.HasIndex(x => x.CohortID).HasName($"FK_{nameof(Notice)}_{nameof(Cohort)}");
+                entity.HasIndex(x => x.StaffID).HasDatabaseName($"FK_{nameof(Notice)}_{nameof(Staff)}");
+                entity.HasIndex(x => x.CohortID).HasDatabaseName($"FK_{nameof(Notice)}_{nameof(Cohort)}");
 
                 // Relationships
                 entity.HasOne(notice => notice.ForCohort)
