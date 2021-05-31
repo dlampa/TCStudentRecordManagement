@@ -50,7 +50,8 @@ namespace TCStudentRecordManagement.Controllers
                     cohortID = localcohortID
                 };
 
-                Logger.Msg<AuthController>($"[LOGIN] SUCCESS User {User.FindFirstValue("email")} ({User.FindFirstValue(ClaimTypes.Role)})");
+                
+                Logger.Msg<AuthController>($"[LOGIN] SUCCESS User {User.FindFirstValue("email")} ({User.FindFirstValue(ClaimTypes.Role)})", Serilog.Events.LogEventLevel.Debug);
                 return Ok(authResponse);
 
             }
