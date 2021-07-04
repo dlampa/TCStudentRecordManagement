@@ -15,8 +15,8 @@ using TCStudentRecordManagement.Utils;
 
 namespace TCStudentRecordManagement.Controllers
 {
-    [Route("[controller]")]
     [Authorize]
+    [Route("[controller]")]
     [ApiController]
     public class NoticesController : ControllerBase
     {
@@ -34,7 +34,7 @@ namespace TCStudentRecordManagement.Controllers
         /// <param name="staffID"></param>
         /// <param name="validFrom"></param>
         /// <returns></returns>
-        [HttpGet("get")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<NoticeDTO>>> Get(int noticeID, int cohortID, int staffID, DateTime validFrom)
         {
 
@@ -93,7 +93,7 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="notice"></param>
         /// <returns></returns>
-        [HttpPut("add")]
+        [HttpPost]
         [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> AddNotice(NoticeDTO notice )
         {
@@ -155,7 +155,7 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="modNotice"></param>
         /// <returns></returns>
-        [HttpPut("modify")]
+        [HttpPut]
         [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> ModifyNotice([FromBody] NoticeDTO notice)
         {
@@ -218,7 +218,7 @@ namespace TCStudentRecordManagement.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("delete")]
+        [HttpDelete]
         [Authorize(Policy = "StaffMember")]
         public async Task<ActionResult> Delete(int id)
         {

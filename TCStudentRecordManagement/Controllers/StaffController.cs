@@ -28,17 +28,28 @@ namespace TCStudentRecordManagement.Controllers
         /// <summary>
         /// Retrieves all Staff records from the database and reports them as StaffDTO object
         /// </summary>
+        /// <param name="id">Optional StaffID</param>
         /// <returns>JSON Array of StaffDTO objects</returns>
-        [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<StaffDTO>>> List()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<StaffDTO>>> List(int id = -1)
         {
-            // Convert Staff to StaffDTO
-            List<Staff> staffData = await _context.Staff.ToListAsync();
             List<StaffDTO> result = new List<StaffDTO>();
-            staffData.ForEach(x => result.Add(new StaffDTO(x)));
 
-            // Log to debug log
-            Logger.Msg<StaffController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
+            if (id > -1)
+            {
+                Staff staffData = await _context.Staff.FindAsync(id);
+                result.Add(new StaffDTO(staffData));
+
+                Logger.Msg<StaffController>($"[${User.FindFirstValue("email")}] [GET] id={id}", Serilog.Events.LogEventLevel.Debug);
+            }
+            else
+            {
+                List<Staff> staffData = await _context.Staff.ToListAsync();
+                staffData.ForEach(x => result.Add(new StaffDTO(x)));
+
+                Logger.Msg<StaffController>($"[{User.FindFirstValue("email")}] [LIST]", Serilog.Events.LogEventLevel.Debug);
+            }
+
             if (result == null)
             {
                 return NotFound();
@@ -49,34 +60,6 @@ namespace TCStudentRecordManagement.Controllers
             }
 
         } // End of List
-
-        /// <summary>
-        /// Retrieves staff records from the database based on StaffID
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpGet("get")]
-        public async Task<ActionResult<UserDTO>> Get(int id)
-        {
-            // Convert User to UserDTO
-            User userData = await _context.Users.FindAsync(id);
-            UserDTO result = new UserDTO(userData);
-
-            // Log to debug log
-            Logger.Msg<UsersController>($"[{User.FindFirstValue("email")}] [GET]", Serilog.Events.LogEventLevel.Debug);
-
-            if (result == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return result;
-            }
-
-        } // End of Get
-
-       
 
         private bool StaffExists(int id)
         {
