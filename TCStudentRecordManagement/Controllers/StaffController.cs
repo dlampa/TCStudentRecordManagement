@@ -63,10 +63,15 @@ namespace TCStudentRecordManagement.Controllers
 
         } // End of List
 
+        /// <summary>
+        /// Create a Staff record in the database for an existing user, reports the result back as the StaffDTO object
+        /// </summary>
+        /// <param name="userID">UserID to assign Staff rights to</param>
+        /// <param name="superUser">Assign SuperUser rights to the new staff member (default: false)</param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult> AddStaff(int userID, bool superUser = false)
         {
-            // Call BLL Student Add method with all the parameters
             object BLLResponse = new StaffBLL(_context).AddStaffBLL(userID: userID, superUser: superUser);
 
             if (BLLResponse.GetType().BaseType == typeof(Exception))
@@ -105,7 +110,7 @@ namespace TCStudentRecordManagement.Controllers
 
         } // End of AddStaff
 
-
+      
 
         private bool StaffExists(int id)
         {
