@@ -59,7 +59,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
         /// </summary>
         /// <param name="staff"></param>
         /// <returns></returns>
-        internal object ModifyUserBLL(StaffDTO staff)
+        internal object ModifyStaffBLL(StaffDTO staff)
         {
             APIException exceptionList = new APIException();
 
@@ -83,7 +83,7 @@ namespace TCStudentRecordManagement.Controllers.BLL
                 return exceptionList;
             }
 
-        } // End of ModifyStaff
+        } // End of ModifyStaffBLL
 
     } // End of StaffBLL
 }
