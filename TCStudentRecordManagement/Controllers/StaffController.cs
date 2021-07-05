@@ -148,6 +148,37 @@ namespace TCStudentRecordManagement.Controllers
             } // End of ModifyStaff
         }
 
+        [HttpDelete]
+        public async Task<ActionResult> DeleteStaff(int staffID)
+        {
+            // Find existing Staff record in the DB
+            Staff staffRecord = await _context.Staff.FindAsync(staffID);
+
+            if (staffRecord == null)
+            {
+                Logger.Msg<StaffController>($"[{User.FindFirstValue("email")}] [DELETE] StaffID: {staffID} not found", Serilog.Events.LogEventLevel.Debug);
+                return NotFound();
+            }
+
+            try
+            {
+                _context.Staff.Remove(staffRecord);
+                await _context.SaveChangesAsync();
+
+                Logger.Msg<StaffController>($"[{User.FindFirstValue("email")}] [DELETE] StaffID: {staffID} success", Serilog.Events.LogEventLevel.Information);
+                return Ok(new StaffDTO(staffRecord));
+            }
+            catch (Exception ex)
+            {
+                Logger.Msg<StaffController>($"[DELETE] Database sync error {ex.Message}", Serilog.Events.LogEventLevel.Error);
+                return StatusCode(500, new { errors = "Database update failed." });
+            }
+
+        } // End of Delete
+
+
+
+
         private bool StaffExists(int id)
         {
             return _context.Staff.Any(e => e.StaffID == id);
