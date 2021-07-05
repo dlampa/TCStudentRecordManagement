@@ -29,6 +29,7 @@ const Root = (store) => (
   <Provider store={store.store}>
     <Router>
       <Route path={process.env.PUBLIC_URL + "/"} exact component={App} />
+      <Route path={process.env.PUBLIC_URL + "/auth" } exact component={App} />
       <Switch>
         <Route path={process.env.PUBLIC_URL + "/timesheets/"} exact component={Timesheets} />
         <Route path={process.env.PUBLIC_URL + "/students/"} exact component={Students} />

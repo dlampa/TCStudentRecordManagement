@@ -28,7 +28,8 @@ namespace TCStudentRecordManagement.Controllers.BLL
 
             Dictionary<string, bool> exceptionTests = new Dictionary<string, bool>()
             {
-                { "Specified userID does not exist", !_context.Users.Any(x => x.UserID == userID) }
+                { "Specified userID does not exist", !_context.Users.Any(x => x.UserID == userID) },
+                { "Specified userID is already a staff member", _context.Staff.Any(x => x.UserID == userID) }
             };
 
             foreach (KeyValuePair<string, bool> kvp in exceptionTests)
